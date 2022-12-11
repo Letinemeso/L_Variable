@@ -1,21 +1,32 @@
 #include <iostream>
 
-#include "Type.h"
+#include "Type_Manager.h"
 
-#include <memory>
-
+#include "Variable_Base.h"
 
 int main()
 {
-	Int var = 1;
+	Type_Manager::register_type("int",
+		{
+			[](void* _data_vptr){ delete (int*)_data_vptr; },
+			[](void* _variable_vptr, const std::string& _value_as_string){ *(int*)_variable_vptr = std::stoi(_value_as_string); },
+			[](void* _variable_vptr, void* _data_ptr){ *(int*)_variable_vptr = *(int*)_data_ptr; }
+		}
+	);
 
-	Int var2 = 2;
+//	std::string int_as_string = "123";
 
-	var2 = var;
-	var = 123;
+//	int value;
 
-	std::cout << *var << "\n";
-	std::cout << *var2 << "\n";
+//	Type_Manager::parse("int", int_as_string, &value);
+
+//	std::cout << value;
+
+	std::map<std::string, std::string> values;
+	values.emplace("ass", "123");
+
+	Variable_Test test;
+	test.assign_values(values);
 
 	return 0;
 }
