@@ -6,10 +6,10 @@
 
 #include "Variable_Base.h"
 
-#include "Int_Variable.h"
-#include "Bool_Variable.h"
-#include "Float_Variable.h"
-#include "String_Variable.h"
+#include "Base_Types/Int_Variable.h"
+#include "Base_Types/Bool_Variable.h"
+#include "Base_Types/Float_Variable.h"
+#include "Base_Types/String_Variable.h"
 
 
 struct Variable_Stub

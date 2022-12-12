@@ -4,20 +4,20 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-        Bool_Variable.cpp \
-        Float_Variable.cpp \
-        Int_Variable.cpp \
-        String_Variable.cpp \
+	Base_Types/Bool_Variable.cpp \
+	Base_Types/Float_Variable.cpp \
+	Base_Types/Int_Variable.cpp \
+	Base_Types/String_Variable.cpp \
         Type_Manager.cpp \
         Variable_Base.cpp \
         Variable_Manager.cpp \
         main.cpp
 
 HEADERS += \
-    Bool_Variable.h \
-    Float_Variable.h \
-    Int_Variable.h \
-    String_Variable.h \
+    Base_Types/Bool_Variable.h \
+    Base_Types/Float_Variable.h \
+    Base_Types/Int_Variable.h \
+    Base_Types/String_Variable.h \
     Type_Manager.h \
     Variable_Base.h \
     Variable_Manager.h
