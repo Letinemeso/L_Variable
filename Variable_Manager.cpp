@@ -57,6 +57,40 @@ Variable_Manager::Type Variable_Manager::M_get_type(const std::string &_value) c
 	return Type::Unknown;
 }
 
+std::string Variable_Manager::M_get_next_subsection_name(const std::string &_sections_path) const
+{
+	unsigned int i=0;
+	for(; i<_sections_path.size(); ++i)
+		if(_sections_path[i] == '.')
+			break;
+
+	if(i == _sections_path.size())
+		return _sections_path;
+
+	return _sections_path.substr(0, i);
+}
+
+Variable_Manager* Variable_Manager::M_get_subsection(const std::string &_sections_path, bool _create_if_not_found)
+{
+	if(_sections_path == "")
+		return this;
+
+	std::string subname = M_get_next_subsection_name(_sections_path);
+
+	std::map<std::string, Variable_Manager>::iterator it = m_subsections.find(subname);
+	if(it == m_subsections.end())
+	{
+		if(_create_if_not_found)
+			it = m_subsections.emplace(subname, Variable_Manager()).first;
+		else
+			return nullptr;
+	}
+	if(subname == _sections_path)
+		return &it->second;
+
+	return it->second.M_get_subsection(_sections_path.substr(subname.size() + 1, _sections_path.size() - 1), _create_if_not_found);
+}
+
 
 
 Variable_Base* Variable_Manager::add_variable(const Variable_Stub &_stub, Array_Variable* _parent)
@@ -109,8 +143,15 @@ Variable_Base* Variable_Manager::add_variable(const Variable_Stub &_stub, Array_
 	return var_ptr;
 }
 
-void Variable_Manager::add_variables(const std::list<Variable_Stub> &_raw_values, Array_Variable* _parent)
+void Variable_Manager::add_variables(const std::list<Variable_Stub> &_raw_values, Array_Variable* _parent, const std::string& _section)
 {
+	if(_section != "")
+	{
+		Variable_Manager* section = M_get_subsection(_section, true);
+		section->add_variables(_raw_values, _parent);
+		return;
+	}
+
 	std::list<Variable_Stub>::const_iterator it = _raw_values.begin();
 	while(it != _raw_values.end())
 	{
@@ -129,6 +170,14 @@ Variable_Base* Variable_Manager::get_variable(const std::string &_variable_name)
 		++it;
 	}
 	return nullptr;
+}
+
+Variable_Manager* Variable_Manager::get_section(const std::string &_name)
+{
+	if(_name == "")
+		return this;
+
+	return M_get_subsection(_name, false);
 }
 
 

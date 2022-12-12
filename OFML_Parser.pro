@@ -20,6 +20,7 @@ HEADERS += \
     Base_Types/Float_Variable.h \
     Base_Types/Int_Variable.h \
     Base_Types/String_Variable.h \
+    OMFL_Reader.h \
     Type_Manager.h \
     Base_Types/Variable_Base.h \
     Variable_Manager.h

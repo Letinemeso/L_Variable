@@ -54,25 +54,31 @@ int main()
 
 //	std::cout << value;
 
-	std::list<Variable_Stub> stubs;
-	stubs.push_back({"ass_int", "123", {}});
-	stubs.push_back({"ass_float", "123.567", {}});
-	stubs.push_back({"ass_bool", "true", {}});
-	stubs.push_back({"ass_string", "\"123 123.567 true ass\"", {}});
-	stubs.push_back({"ass_arr", "[]", {}});
-	auto parent_test = stubs.rbegin();
-	parent_test->childs.push_back({"", "\"abc\"", {}});
-	parent_test->childs.push_back({"", "true", {}});
-	parent_test->childs.push_back({"", "3213266", {}});
-	parent_test->childs.push_back({"", "6.6123", {}});
+	while(true)
+	{
+		std::list<Variable_Stub> stubs;
+		stubs.push_back({"ass_int", "123", {}});
+		stubs.push_back({"ass_float", "123.567", {}});
+		stubs.push_back({"ass_bool", "true", {}});
+		stubs.push_back({"ass_string", "\"123 123.567 true ass\"", {}});
+		stubs.push_back({"ass_arr", "[]", {}});
+		auto parent_test = stubs.rbegin();
+		parent_test->childs.push_back({"", "\"abc\"", {}});
+		parent_test->childs.push_back({"", "true", {}});
+		parent_test->childs.push_back({"", "3213266", {}});
+		parent_test->childs.push_back({"", "6.6123", {}});
 
-	Variable_Manager vm;
+		Variable_Manager vm;
 
-	vm.add_variables(stubs);
+		vm.add_variables(stubs, nullptr, "ass.baaa");
+		vm.add_variables(stubs, nullptr, "balaclava");
 
-	Variable_Base* parent_ptr = vm.get_variable("ass_arr");
-	vm.exclude_variable(parent_ptr);
-	delete parent_ptr;
+		Variable_Manager* subsection = vm.get_section("ass")->get_section("baaa");
+
+		Variable_Base* parent_ptr = subsection->get_variable("ass_arr");
+		subsection->exclude_variable(parent_ptr);
+		delete parent_ptr;
+	}
 
 	return 0;
 }
