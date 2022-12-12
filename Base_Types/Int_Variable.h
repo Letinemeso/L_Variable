@@ -7,7 +7,7 @@
 class Int_Variable : public Variable_Base
 {
 private:
-	DECLARE_VARIABLE(Int_Variable, Variable_Base);
+	DECLARE_VARIABLE;
 
 private:
 	int m_value = 0;

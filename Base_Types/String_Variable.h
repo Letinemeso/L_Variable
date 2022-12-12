@@ -9,7 +9,7 @@
 class String_Variable : public Variable_Base
 {
 private:
-	DECLARE_VARIABLE(String_Variable, Variable_Base);
+	DECLARE_VARIABLE;
 
 private:
 	std::string m_value;

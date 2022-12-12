@@ -7,7 +7,7 @@
 class Float_Variable : public Variable_Base
 {
 private:
-	DECLARE_VARIABLE(Float_Variable, Variable_Base);
+	DECLARE_VARIABLE;
 
 private:
 	float m_value = 0.0f;

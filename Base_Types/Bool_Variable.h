@@ -7,7 +7,7 @@
 class Bool_Variable : public Variable_Base
 {
 private:
-	DECLARE_VARIABLE(Bool_Variable, Variable_Base);
+	DECLARE_VARIABLE;
 
 private:
 	bool m_value = false;

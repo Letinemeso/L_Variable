@@ -11,12 +11,13 @@ typedef std::map<std::string, std::string> Str_Values;
 
 #ifndef VARIABLE
 
-	#define DECLARE_VARIABLE(variable_type, parent_type) \
+	#define DECLARE_VARIABLE \
 		public: \
-			static std::string get_estimated_type() { return parent_type::get_estimated_type() + "/" + std::string(#variable_type); } \
+			static std::string get_estimated_type(); \
 			void assign_values(const Str_Values& _str_values) override
 
 	#define INIT_FIELDS(variable_type, parent_type) \
+		std::string variable_type::get_estimated_type() { return parent_type::get_estimated_type() + "/" + std::string(#variable_type); } \
 		void variable_type::assign_values(const Str_Values& _str_values) { \
 			parent_type::assign_values(_str_values); \
 			m_type = m_type + "/" + std::string(#variable_type);
@@ -32,6 +33,8 @@ typedef std::map<std::string, std::string> Str_Values;
 #endif
 
 
+class Array_Variable;
+
 class Variable_Base
 {
 protected:
@@ -43,6 +46,9 @@ public:
 	const std::string& get_actual_type() { return m_type; }
 	virtual void assign_values(const Str_Values& /*_str_values*/);
 
+private:
+	Array_Variable* m_parent = nullptr;
+
 public:
 	Variable_Base();
 	virtual ~Variable_Base();
@@ -50,6 +56,10 @@ public:
 public:
 	void set_name(const std::string& _name);
 	const std::string& get_name() const;
+
+public:
+	void set_parent(Array_Variable* _parent);
+	Array_Variable* get_parent();
 
 };
 

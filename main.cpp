@@ -2,7 +2,7 @@
 
 #include "Type_Manager.h"
 
-#include "Variable_Base.h"
+#include "Base_Types/Variable_Base.h"
 
 #include "Variable_Manager.h"
 
@@ -54,20 +54,25 @@ int main()
 
 //	std::cout << value;
 
-
 	std::list<Variable_Stub> stubs;
-	stubs.push_back({"ass_int", "123"});
-	stubs.push_back({"ass_float", "123.567"});
-	stubs.push_back({"ass_bool", "true"});
-	stubs.push_back({"ass_string", "\"123 123.567 true ass\""});
+	stubs.push_back({"ass_int", "123", {}});
+	stubs.push_back({"ass_float", "123.567", {}});
+	stubs.push_back({"ass_bool", "true", {}});
+	stubs.push_back({"ass_string", "\"123 123.567 true ass\"", {}});
+	stubs.push_back({"ass_arr", "[]", {}});
+	auto parent_test = stubs.rbegin();
+	parent_test->childs.push_back({"", "\"abc\"", {}});
+	parent_test->childs.push_back({"", "true", {}});
+	parent_test->childs.push_back({"", "3213266", {}});
+	parent_test->childs.push_back({"", "6.6123", {}});
 
 	Variable_Manager vm;
 
-	vm.add_values(stubs);
+	vm.add_variables(stubs);
 
-
-	Int_Variable* I = cast_variable<Int_Variable>(vm.get_variable("ass_int"));
-
+	Variable_Base* parent_ptr = vm.get_variable("ass_arr");
+	vm.exclude_variable(parent_ptr);
+	delete parent_ptr;
 
 	return 0;
 }
