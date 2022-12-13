@@ -9,6 +9,7 @@ SOURCES += \
 	Base_Types/Float_Variable.cpp \
 	Base_Types/Int_Variable.cpp \
 	Base_Types/String_Variable.cpp \
+	OMFL_Reader.cpp \
         Type_Manager.cpp \
 	Base_Types/Variable_Base.cpp \
         Variable_Manager.cpp \

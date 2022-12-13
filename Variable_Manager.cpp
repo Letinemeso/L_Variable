@@ -160,6 +160,21 @@ void Variable_Manager::add_variables(const std::list<Variable_Stub> &_raw_values
 	}
 }
 
+
+void Variable_Manager::add_variables(const OMFL_Reader &_omfl_reader)
+{
+	using Data_t = OMFL_Reader::Parsed_Data_t;
+	const Data_t& data = _omfl_reader.parsed_data();
+
+	Data_t::const_iterator it = data.cbegin();
+	while(it != data.cend())
+	{
+		add_variables(it->second, nullptr, it->first);
+		++it;
+	}
+}
+
+
 Variable_Base* Variable_Manager::get_variable(const std::string &_variable_name)
 {
 	std::list<Variable_Base*>::iterator it = m_variables.begin();

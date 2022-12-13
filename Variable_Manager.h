@@ -4,21 +4,15 @@
 #include <list>
 #include <map>
 
-#include "Base_Types/Variable_Base.h"
+#include "OMFL_Reader.h"
 
+#include "Base_Types/Variable_Base.h"
 #include "Base_Types/Int_Variable.h"
 #include "Base_Types/Bool_Variable.h"
 #include "Base_Types/Float_Variable.h"
 #include "Base_Types/String_Variable.h"
 #include "Base_Types/Array_Variable.h"
 
-
-struct Variable_Stub
-{
-	std::string name;
-	std::string value;
-	std::list<Variable_Stub> childs;
-};
 
 
 class Variable_Manager
@@ -51,6 +45,8 @@ private:
 public:
 	Variable_Base* add_variable(const Variable_Stub& _stub, Array_Variable* _parent = nullptr);
 	void add_variables(const std::list<Variable_Stub>& _raw_values, Array_Variable* _parent = nullptr, const std::string& _section = "");
+
+	void add_variables(const OMFL_Reader& _omfl_reader);
 
 	void add_variable(Variable_Base* _variable);
 	void exclude_variable(Variable_Base* _variable);
