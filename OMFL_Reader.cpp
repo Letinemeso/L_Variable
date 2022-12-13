@@ -1,63 +1,113 @@
 #include "OMFL_Reader.h"
 
 
-Variable_Stub OMFL_Reader::M_parse_line(const std::string &_raw_data, unsigned int &_offset) const
+void OMFL_Reader::M_append_error_message(const std::string &_msg)
+{
+	if(m_error_log.size() > 0)
+		m_error_log += "\n\n";
+
+	m_error_log += _msg;
+}
+
+std::string OMFL_Reader::M_construct_syntax_error_message(unsigned int _line_number, const std::string& _description, const std::string &_line/*, unsigned int _error_pos*/) const
+{
+	std::string result = "Syntax error in line " + std::to_string(_line_number) + ":\n";
+	if(_description.size() > 0)
+		result += _description + '\n';
+	std::string underline;
+	underline.resize(_line.size());
+	for(unsigned int i=0; i<underline.size(); ++i)
+		underline[i] = '-';
+	result += "  " + underline + '\n';
+	result += "  " + _line + '\n';
+	result += "  " + underline;
+
+	return result;
+}
+
+
+
+const std::string& OMFL_Reader::error_log() const
+{
+	return m_error_log;
+}
+
+
+
+Variable_Stub OMFL_Reader::M_parse_line(const std::string &_line) const
 {
 	Variable_Stub result;
 
-	if(_raw_data.size() == 0)
+	if(_line.size() == 0)
 		return result;
 
-	if(_offset >= _raw_data.size())
-		return result;
-
-	unsigned int initial_offset = _offset;
-
-	unsigned int first_equals_pos = initial_offset;
-
-	unsigned int end = initial_offset + 1;
-	for(; end < _raw_data.size() && _raw_data[end] != '\n'; ++end)
+	unsigned int first_equals_pos = 0;
+	unsigned int end = first_equals_pos + 1;
+	for(; end < _line.size() && _line[end] != '\n'; ++end)
 	{
-		if(_raw_data[end] == '=' && first_equals_pos == initial_offset)
-			first_equals_pos = end - initial_offset;
+		if(_line[end] == '=' && first_equals_pos == 0)
+			first_equals_pos = end;
 	}
 
-	_offset = end + 1;
-
-	std::string line = _raw_data.substr(initial_offset, end - initial_offset);
-
-	std::string word = M_parse_word(line, 0);
+	std::string word = M_parse_word(_line, 0);
 
 	if(word[0] == '#')	//	comment
 		return result;
 
 	if(word[0] == '[')	//	section
 	{
-		M_parse_section(line, result);
+		M_parse_section(_line, result);
 		return result;
 	}
 
-	if(first_equals_pos == initial_offset)	//	no equals sign found (invalid syntax)
+	if(first_equals_pos == 0)	//	no equals sign found (invalid syntax)
+	{
+		result.comment += "No equals sign found";
 		return result;
+	}
+
+	if(word[0] == '=')
+	{
+		result.comment += "Parentless variable cannot be unnamed";
+		return result;
+	}
+
+	word = M_parse_variable_name(_line);
 
 	if(!M_variable_name_is_valid(word))	// chess speaks for itself
+	{
+		result.comment += "Invalid variable name: \"" + word + "\"";
 		return result;
+	}
 
-	std::string value = M_parse_word(line, first_equals_pos + 1);
+	std::string value = M_parse_word(_line, first_equals_pos + 1);
 
 	if(value.size() == 0)	//	variable is empty
+	{
+		result.comment += "Variable \"" + word + "\" has no value";
 		return result;
+	}
+
+	if(!M_only_one_value_specified(_line, first_equals_pos))
+	{
+		result.comment += "Invalid value specification for variable \"" + word + '\"';
+		return result;
+	}
 
 	result.name = word;
 
 	if(value[0] == '[')	//	variable is array
 	{
-		M_parse_array(M_parse_all_array_variables(line.substr(first_equals_pos + 1)), result);
+		std::string array_string = M_parse_whole_array_string(_line.substr(first_equals_pos + 1));
+		if(array_string.size() > 0)
+			M_parse_array(array_string, result);
+		else
+			result.comment += "Invalid declaration of array \"" + word + "\"";
 		return result;
 	}
 	if(value[0] == '\"')	//	variable is string
 	{
-		result.value = M_parse_string(line.substr(first_equals_pos + 1));
+		result.value = M_parse_string(_line.substr(first_equals_pos + 1));
 		if(result.value.size() == 0)
 			result.name = "";
 		return result;
@@ -65,6 +115,19 @@ Variable_Stub OMFL_Reader::M_parse_line(const std::string &_raw_data, unsigned i
 
 	result.value = value;
 	return result;
+}
+
+std::string OMFL_Reader::M_parse_word(const std::string &_line, unsigned int _offset) const
+{
+	for(; _offset < _line.size() && (_line[_offset] == ' ' || _line[_offset] == '\t'); ++_offset) { }
+
+	if(_offset == _line.size())
+		return "";
+
+	unsigned int end = _offset + 1;
+	for(; end < _line.size() && (_line[end] != ' ' && _line[end] != '\t'); ++end) { }
+
+	return _line.substr(_offset, end - _offset);
 }
 
 void OMFL_Reader::M_parse_section(const std::string &_line, Variable_Stub &_result) const
@@ -79,14 +142,17 @@ void OMFL_Reader::M_parse_section(const std::string &_line, Variable_Stub &_resu
 	unsigned int end = offset + 1;
 	for(; end < _line.size() && _line[end] != ']'; ++end) { }
 
-	if(end >= _line.size())
+	if(offset >= end || end >= _line.size())
+	{
+		_result.comment += "Invalid section declaration: " + _line + '\"';
 		return;
-
-	if(offset >= end)
-		return;
+	}
 
 	_result.name = _line.substr(offset, end - offset);
 	_result.value = "";
+
+	if(!M_section_name_is_valid(_result.name))
+		_result.comment += "Invalid section name: \"" + _result.name + '\"';
 }
 
 std::string OMFL_Reader::M_parse_string(const std::string &_line) const
@@ -108,6 +174,9 @@ std::string OMFL_Reader::M_parse_string(const std::string &_line) const
 
 void OMFL_Reader::M_parse_array(const std::string &_array, Variable_Stub &_result) const
 {
+	if(_array == "[]")
+		return;
+
 	unsigned int offset = 1;
 	while(offset < _array.size())
 	{
@@ -118,6 +187,7 @@ void OMFL_Reader::M_parse_array(const std::string &_array, Variable_Stub &_resul
 
 		if(variable.size() == 0)
 		{
+			_result.comment += "Unnamed array variable has no value";
 			_result.childs.clear();
 			return;
 		}
@@ -126,7 +196,7 @@ void OMFL_Reader::M_parse_array(const std::string &_array, Variable_Stub &_resul
 		if(variable[0] == '[')
 		{
 			M_parse_array(variable, stub);
-			if(stub.childs.size() == 0)
+			if(stub.childs.size() == 0 && stub.comment.size() > 0)
 			{
 				_result.childs.clear();
 				return;
@@ -151,7 +221,7 @@ std::string OMFL_Reader::M_parse_array_variable(const std::string &_array, unsig
 	if(_array[first_symbol_pos] == '\"')
 		value = M_parse_string(_array.substr(first_symbol_pos, _array.size()));
 	else if(_array[first_symbol_pos] == '[')
-		value = M_parse_all_array_variables(_array.substr(first_symbol_pos, _array.size()));
+		value = M_parse_whole_array_string(_array.substr(first_symbol_pos, _array.size()));
 
 	if(value.size() > 0)
 	{
@@ -170,7 +240,7 @@ std::string OMFL_Reader::M_parse_array_variable(const std::string &_array, unsig
 	return value;
 }
 
-std::string OMFL_Reader::M_parse_all_array_variables(const std::string _array) const
+std::string OMFL_Reader::M_parse_whole_array_string(const std::string _array) const
 {
 	unsigned int skip_close_brackets = 0;
 
@@ -201,17 +271,33 @@ std::string OMFL_Reader::M_parse_all_array_variables(const std::string _array) c
 	return _array.substr(offset, end + 1);
 }
 
-std::string OMFL_Reader::M_parse_word(const std::string &_line, unsigned int _offset) const
+std::string OMFL_Reader::M_parse_variable_name(const std::string &_line) const
 {
-	for(; _offset < _line.size() && (_line[_offset] == ' ' || _line[_offset] == '\t'); ++_offset) { }
-
-	if(_offset == _line.size())
+	if(_line.size() == 0)
 		return "";
 
-	unsigned int end = _offset + 1;
-	for(; end < _line.size() && (_line[end] != ' ' && _line[end] != '\t'); ++end) { }
+	std::string result;
 
-	return _line.substr(_offset, end - _offset);
+	unsigned int offset = 0;
+	for(; offset < _line.size() && (_line[offset] == ' ' || _line[offset] == '\t'); ++offset);
+
+	if(offset == _line.size())
+		return "";
+
+	if(_line[offset] == '=')
+		return "";
+
+	unsigned int end = offset + 1;
+	for(; end < _line.size() && _line[end] != '='; ++end);
+	--end;
+
+	while((_line[end] == ' ' || _line[end] == '\t') && end > offset)
+		--end;
+
+	if(end == offset)
+		return "";
+
+	return _line.substr(offset, end - offset + 1);
 }
 
 bool OMFL_Reader::M_variable_name_is_valid(const std::string &_name) const
@@ -228,21 +314,114 @@ bool OMFL_Reader::M_variable_name_is_valid(const std::string &_name) const
 	return true;
 }
 
+bool OMFL_Reader::M_section_name_is_valid(const std::string &_name) const
+{
+	if(_name.size() == 0)
+		return false;
+
+	for(unsigned int i=0; i<_name.size(); ++i)
+	{
+		if( ! ( (_name[i] >= 'A' && _name[i] <= 'Z') || (_name[i] >= 'a' && _name[i] <= 'z') || (_name[i] <= '1' && _name[i] >= '0') || _name[i] == '-' || _name[i] == '_' || _name[i] == '.') )
+			return false;
+	}
+
+	return true;
+}
+
 unsigned int OMFL_Reader::M_find_next_sumbol_pos(const std::string &_str, unsigned int _offset, char _symbol) const
 {
 	for(; _offset < _str.size() && _str[_offset] != _symbol; ++_offset) { }
 	return _offset;
 }
 
+bool OMFL_Reader::M_only_one_value_specified(const std::string &_line, unsigned int _equals_sign_pos) const
+{
+	unsigned int offset = _equals_sign_pos + 1;
+	for(; offset < _line.size() && (_line[offset] == ' ' || _line[offset] == '\t'); ++offset) {}
+
+	if(offset == _line.size())
+		return false;
+
+	if(_line[offset] == '\"')
+	{
+		++offset;
+		for(; offset < _line.size() && _line[offset] != '\"'; ++offset) {}
+
+		if(offset == _line.size())
+			return false;
+
+		++offset;
+	}
+	else if(_line[offset] == '[')
+	{
+		unsigned int skip_close_brackets = 0;
+
+		++offset;
+		for(; offset < _line.size(); ++offset)
+		{
+			if(_line[offset] == '[')
+				++skip_close_brackets;
+			if(_line[offset] == ']')
+			{
+				if(skip_close_brackets == 0)
+					break;
+				else
+					--skip_close_brackets;
+			}
+		}
+		if(offset == _line.size())
+			return false;
+
+		++offset;
+	}
+	else
+	{
+		for(; offset < _line.size() && _line[offset] != ' ' && _line[offset] != '\t'; ++offset) {}
+	}
+
+	for(; offset < _line.size(); ++offset)
+		if(_line[offset] != ' ' && _line[offset] != '\t')
+			return false;
+
+	return true;
+}
+
+std::string OMFL_Reader::M_get_last_subsection_name(const std::string &_section_path) const
+{
+	unsigned int last_dot_pos = 0;
+	for(unsigned int i = 0; i < _section_path.size(); ++i)
+		if(_section_path[i] == '.')
+			last_dot_pos = i + 1;
+
+	return _section_path.substr(last_dot_pos);
+}
+
 
 
 void OMFL_Reader::parse(const std::string& _raw_data)
 {
+	m_parsed_data.clear();
+	m_error_log.clear();
+
 	unsigned int offset = 0;
+
+	unsigned int line_number = 0;
 
 	while(offset < _raw_data.size())
 	{
-		Variable_Stub stub = M_parse_line(_raw_data, offset);
+		unsigned int next_line_offset = M_find_next_sumbol_pos(_raw_data, offset, '\n') + 1;
+		std::string current_line = _raw_data.substr(offset, next_line_offset - 1 - offset);
+		offset = next_line_offset;
+
+		++line_number;
+
+		Variable_Stub stub = M_parse_line(current_line);
+
+		if(stub.comment.size() > 0)
+		{
+			M_append_error_message(M_construct_syntax_error_message(line_number, stub.comment, current_line));
+			continue;
+		}
 
 		if(stub.is_section())
 		{
@@ -253,12 +432,43 @@ void OMFL_Reader::parse(const std::string& _raw_data)
 		if(!stub.ok())
 			continue;
 
+		if(stub.name == M_get_last_subsection_name(m_current_section))
+		{
+			M_append_error_message(M_construct_syntax_error_message(line_number, "Invalid variable name (matches subsection name): \"" + stub.name + '\"', current_line));
+			continue;
+		}
+
 		Parsed_Data_t::iterator section_it = m_parsed_data.find(m_current_section);
 		if(section_it == m_parsed_data.end())
 			section_it = m_parsed_data.emplace(m_current_section, std::list<Variable_Stub>()).first;
 
 		section_it->second.push_back(stub);
 	}
+
+	if(m_error_log.size() > 0)
+		m_parsed_data.clear();
+}
+
+void OMFL_Reader::load_file(const std::string &_path)
+{
+	std::ifstream file(_path + ".omfl", std::ifstream::in);
+	if(!file.is_open())
+	{
+		M_append_error_message("Invalid file path: " + _path + ".omfl");
+		return;
+	}
+
+	file.seekg(0, std::ifstream::end);
+	unsigned int size = file.tellg();
+	file.seekg(0, std::ifstream::beg);
+
+	std::string raw_content;
+	raw_content.resize(size);
+	for(unsigned int i=0; i<size; ++i)
+		raw_content[i] = file.get();
+
+	file.close();
+	parse(raw_content);
 }
 
 
