@@ -55,6 +55,9 @@ private:
 	unsigned int M_find_next_sumbol_pos(const std::string& _str, unsigned int _offset, char _symbol) const;
 	bool M_only_one_value_specified(const std::string& _line, unsigned int _equals_sign_pos) const;
 	std::string M_get_last_subsection_name(const std::string& _section_path) const;
+	bool M_is_numeric_value_correct(const std::string& _value) const;
+	bool M_is_value_correct(const std::string& _value) const;
+	bool M_is_variable_registred(const std::string& _name, const std::list<Variable_Stub>& _section) const;
 
 public:
 	void parse(const std::string& _raw_data);

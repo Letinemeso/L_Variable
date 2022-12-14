@@ -13,7 +13,9 @@ SOURCES += \
         Type_Manager.cpp \
 	Base_Types/Variable_Base.cpp \
         Variable_Manager.cpp \
-        main.cpp
+        main.cpp \
+	parser.cpp \
+	test.cpp
 
 HEADERS += \
     Base_Types/Array_Variable.h \
@@ -24,4 +26,5 @@ HEADERS += \
     OMFL_Reader.h \
     Type_Manager.h \
     Base_Types/Variable_Base.h \
-    Variable_Manager.h
+    Variable_Manager.h \
+    parser.h

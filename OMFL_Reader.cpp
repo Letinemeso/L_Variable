@@ -113,6 +113,12 @@ Variable_Stub OMFL_Reader::M_parse_line(const std::string &_line) const
 		return result;
 	}
 
+	if(!M_is_numeric_value_correct(value))
+	{
+		result.comment = "Invalid numeric value of variable \"" + word + "\"";
+		return result;
+	}
+
 	result.value = value;
 	return result;
 }
@@ -201,9 +207,23 @@ void OMFL_Reader::M_parse_array(const std::string &_array, Variable_Stub &_resul
 				_result.childs.clear();
 				return;
 			}
+			if(stub.comment.size() > 0)
+			{
+				_result.comment += stub.comment;
+				_result.childs.clear();
+				return;
+			}
 		}
 		else
+		{
+			if(!M_is_value_correct(variable))
+			{
+				_result.comment += "Invalid array variable value: \"" + variable + '\"';
+				_result.childs.clear();
+				return;
+			}
 			stub.value = variable;
+		}
 
 		_result.childs.push_back(stub);
 	}
@@ -307,7 +327,7 @@ bool OMFL_Reader::M_variable_name_is_valid(const std::string &_name) const
 
 	for(unsigned int i=0; i<_name.size(); ++i)
 	{
-		if( ! ( (_name[i] >= 'A' && _name[i] <= 'Z') || (_name[i] >= 'a' && _name[i] <= 'z') || (_name[i] <= '1' && _name[i] >= '0') || _name[i] == '-' || _name[i] == '_' ) )
+		if( ! ( (_name[i] >= 'A' && _name[i] <= 'Z') || (_name[i] >= 'a' && _name[i] <= 'z') || (_name[i] >= '0' && _name[i] <= '9') || _name[i] == '-' || _name[i] == '_' ) )
 			return false;
 	}
 
@@ -321,7 +341,7 @@ bool OMFL_Reader::M_section_name_is_valid(const std::string &_name) const
 
 	for(unsigned int i=0; i<_name.size(); ++i)
 	{
-		if( ! ( (_name[i] >= 'A' && _name[i] <= 'Z') || (_name[i] >= 'a' && _name[i] <= 'z') || (_name[i] <= '1' && _name[i] >= '0') || _name[i] == '-' || _name[i] == '_' || _name[i] == '.') )
+		if( ! ( (_name[i] >= 'A' && _name[i] <= 'Z') || (_name[i] >= 'a' && _name[i] <= 'z') || (_name[i] >= '0' && _name[i] <= '9') || _name[i] == '-' || _name[i] == '_' || _name[i] == '.') )
 			return false;
 	}
 
@@ -380,8 +400,12 @@ bool OMFL_Reader::M_only_one_value_specified(const std::string &_line, unsigned 
 	}
 
 	for(; offset < _line.size(); ++offset)
+	{
+		if(_line[offset] == '#')
+			return true;
 		if(_line[offset] != ' ' && _line[offset] != '\t')
 			return false;
+	}
 
 	return true;
 }
@@ -394,6 +418,78 @@ std::string OMFL_Reader::M_get_last_subsection_name(const std::string &_section_
 			last_dot_pos = i + 1;
 
 	return _section_path.substr(last_dot_pos);
+}
+
+bool OMFL_Reader::M_is_numeric_value_correct(const std::string &_value) const
+{
+	if(_value.size() == 0)
+		return false;
+
+	if(_value == "true" || _value == "false")
+		return true;
+
+	bool skip_first = _value[0] == '-' || _value[0] == '+';
+	if(_value.size() == 1 && skip_first)
+		return false;
+
+	unsigned int dots_amount = 0;
+	unsigned int first_dot_pos = _value.size();
+
+	bool only_digits = true;
+
+	for(unsigned int i=skip_first; i < _value.size(); ++i)
+	{
+		if(first_dot_pos == _value.size() && _value[i] == '.')
+		{
+			first_dot_pos = i;
+			++dots_amount;
+			continue;
+		}
+		if(!(_value[i] >= '0' && _value[i] <= '9'))
+			only_digits = false;
+	}
+
+	if(!only_digits)
+		return false;
+
+	if(dots_amount > 1)
+		return false;
+
+	if(first_dot_pos == 0 || (first_dot_pos == 1 && skip_first))
+		return false;
+
+	if(first_dot_pos == _value.size() - 1)
+		return false;
+
+	return true;
+}
+
+bool OMFL_Reader::M_is_value_correct(const std::string &_value) const
+{
+	if(_value.size() == 0)
+		return false;
+
+	if(_value[0] == '\"' && _value[_value.size() - 1] == '\"')
+		return true;
+	if(_value == "true" || _value == "false")
+		return true;
+
+	if(M_is_numeric_value_correct(_value))
+		return true;
+
+	return false;
+}
+
+bool OMFL_Reader::M_is_variable_registred(const std::string &_name, const std::list<Variable_Stub> &_section) const
+{
+	std::list<Variable_Stub>::const_iterator it = _section.begin();
+	while(it != _section.end())
+	{
+		if(it->name == _name)
+			return true;
+		++it;
+	}
+	return false;
 }
 
 
@@ -441,6 +537,12 @@ void OMFL_Reader::parse(const std::string& _raw_data)
 		Parsed_Data_t::iterator section_it = m_parsed_data.find(m_current_section);
 		if(section_it == m_parsed_data.end())
 			section_it = m_parsed_data.emplace(m_current_section, std::list<Variable_Stub>()).first;
+
+		if(M_is_variable_registred(stub.name, section_it->second))
+		{
+			M_append_error_message(M_construct_syntax_error_message(line_number, "Variable \"" + stub.name + "\" already exists", current_line));
+			continue;
+		}
 
 		section_it->second.push_back(stub);
 	}

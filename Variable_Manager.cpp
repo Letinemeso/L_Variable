@@ -32,9 +32,11 @@ Variable_Manager::Type Variable_Manager::M_get_type(const std::string &_value) c
 	if(_value == "true" || _value == "false")
 		return Type::Bool;
 
+	bool skip_first = _value[0] == '-' || _value[0] == '+';
+
 	bool have_only_digits = true;
 	unsigned int dots_amount = 0;
-	for(unsigned int i=0; i<_value.size(); ++i)
+	for(unsigned int i=skip_first; i<_value.size(); ++i)
 	{
 		if(_value[i] == '.')
 		{

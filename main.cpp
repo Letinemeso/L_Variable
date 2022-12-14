@@ -1,3 +1,7 @@
+#include "test.cpp"
+
+#if TEST_IT == false
+
 #include <iostream>
 
 #include "Type_Manager.h"
@@ -69,3 +73,5 @@ int main()
 
 	return 0;
 }
+
+#endif
