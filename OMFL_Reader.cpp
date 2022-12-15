@@ -77,6 +77,7 @@ Variable_Stub OMFL_Reader::M_parse_line(const std::string &_line) const
 	if(!M_variable_name_is_valid(word))	// chess speaks for itself
 	{
 		result.comment += "Invalid variable name: \"" + word + "\"";
+		word = M_parse_variable_name(_line);
 		return result;
 	}
 
@@ -314,10 +315,8 @@ std::string OMFL_Reader::M_parse_variable_name(const std::string &_line) const
 	while((_line[end] == ' ' || _line[end] == '\t') && end > offset)
 		--end;
 
-	if(end == offset)
-		return "";
-
-	return _line.substr(offset, end - offset + 1);
+	unsigned int size = end - offset + 1;
+	return _line.substr(offset, size);
 }
 
 bool OMFL_Reader::M_variable_name_is_valid(const std::string &_name) const
