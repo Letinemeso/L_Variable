@@ -345,6 +345,24 @@ bool OMFL_Reader::M_section_name_is_valid(const std::string &_name) const
 			return false;
 	}
 
+	if(_name[0] == '.')
+		return false;
+
+	unsigned int prev_dot_pos = _name.size(), current_dot_pos = _name.size();
+	for(unsigned int i=0; i<_name.size(); ++i)
+	{
+		if(_name[i] == '.')
+		{
+			prev_dot_pos = current_dot_pos;
+			current_dot_pos = i;
+
+			if(prev_dot_pos == current_dot_pos - 1)
+				return false;
+		}
+	}
+	if(current_dot_pos == _name.size() - 1)
+		return false;
+
 	return true;
 }
 
@@ -510,6 +528,9 @@ void OMFL_Reader::parse(const std::string& _raw_data)
 		offset = next_line_offset;
 
 		++line_number;
+
+		if(current_line.size() == 0)
+			continue;
 
 		Variable_Stub stub = M_parse_line(current_line);
 
