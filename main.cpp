@@ -1,3 +1,5 @@
+#define TEST_IT false
+
 #include "test.cpp"
 
 #if TEST_IT == false

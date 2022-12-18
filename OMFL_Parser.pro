@@ -28,6 +28,3 @@ HEADERS += \
     Base_Types/Variable_Base.h \
     Variable_Manager.h \
     parser.h
-
-DISTFILES += \
-    file.omfl
