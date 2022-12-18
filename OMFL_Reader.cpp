@@ -586,8 +586,17 @@ void OMFL_Reader::load_file(const std::string &_path)
 
 	std::string raw_content;
 	raw_content.resize(size);
-	for(unsigned int i=0; i<size; ++i)
+	unsigned int i = 0;
+	for(; i<size && !file.eof(); ++i)
+	{
 		raw_content[i] = file.get();
+		if(file.eof())
+		{
+			raw_content[i] = 0;
+			break;
+		}
+	}
+	raw_content.resize(i);
 
 	file.close();
 	parse(raw_content);

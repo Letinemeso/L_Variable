@@ -14,7 +14,7 @@ using namespace omfl;
 #define ASSERT_EQ(_first, _second) { if(_first != _second) { int a = 1; a /= 0; } }
 #define ASSERT_FLOAT_EQ(_first, _second) { if(fabs(_first - _second) > 0.0001f) { int a = 1; a /= 0; } }
 
-//#define TEST_IT true
+#define TEST_IT false
 
 #if TEST_IT == true
 	#define START_TESTS int main() {
