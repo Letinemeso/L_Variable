@@ -1,4 +1,5 @@
-TEMPLATE = app
+TEMPLATE = lib
+CONFIG += staticlib
 CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
