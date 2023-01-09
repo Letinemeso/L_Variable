@@ -4,31 +4,28 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
+INCLUDEPATH += "include"
+INCLUDEPATH += "../Utility/include"
+INCLUDEPATH += "../Utility/include/Data_Structures"
+
 SOURCES += \
-	Base_Types/Array_Variable.cpp \
-	Base_Types/Bool_Variable.cpp \
-	Base_Types/Float_Variable.cpp \
-	Base_Types/Int_Variable.cpp \
-	Base_Types/String_Variable.cpp \
-	OMFL_Reader.cpp \
-        Type_Manager.cpp \
-	Base_Types/Variable_Base.cpp \
-        Variable_Manager.cpp \
-        main.cpp \
-	parser.cpp \
-	test.cpp
+	source/MDL_Reader.cpp \
+	source/Type_Manager.cpp \
+	source/Variable_Manager.cpp
+#	source/Base_Types/Array_Variable.cpp \
+#	source/Base_Types/Bool_Variable.cpp \
+#	source/Base_Types/Float_Variable.cpp \
+#	source/Base_Types/Int_Variable.cpp \
+#	source/Base_Types/String_Variable.cpp \
+#	source/Base_Types/Variable_Base.cpp \
 
 HEADERS += \
-    Base_Types/Array_Variable.h \
-    Base_Types/Bool_Variable.h \
-    Base_Types/Float_Variable.h \
-    Base_Types/Int_Variable.h \
-    Base_Types/String_Variable.h \
-    OMFL_Reader.h \
-    Type_Manager.h \
-    Base_Types/Variable_Base.h \
-    Variable_Manager.h \
-    parser.h
-
-DISTFILES += \
-	build/file.omfl
+    include/MDL_Reader.h \
+    include/Type_Manager.h \
+    include/Variable_Manager.h
+#    include/Base_Types/Array_Variable.h \
+#    include/Base_Types/Bool_Variable.h \
+#    include/Base_Types/Float_Variable.h \
+#    include/Base_Types/Int_Variable.h \
+#    include/Base_Types/String_Variable.h \
+#    include/Base_Types/Variable_Base.h \
