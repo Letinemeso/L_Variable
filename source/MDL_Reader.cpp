@@ -36,8 +36,6 @@ void MDL_Reader::parse_file(const std::string &_path)
 			break;
 
 		MDL_Variable_Stub stub;
-		stub.type = M_parse_type(line);
-		L_ASSERT(stub.type.size() > 0);
 		stub.name = M_parse_name(line);
 		L_ASSERT(stub.name.size() > 0);
 
@@ -78,7 +76,7 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 
 	for(Stub_Map::const_iterator stub_it = m_stubs.cbegin(); stub_it != m_stubs.end(); ++stub_it)
 	{
-		file << "<" << stub_it->second.type << "> " << "|" << stub_it->second.name << "|\n\\\n";
+		file << "|" << stub_it->second.name << "|\n\\\n";
 
 		for(MDL_Variable_Stub::fields_t::const_iterator variable_it = stub_it->second.fields.cbegin(); variable_it != stub_it->second.fields.cend(); ++variable_it)
 		{
@@ -220,7 +218,13 @@ std::string MDL_Reader::M_extract_variable_data(const std::string &_raw, unsigne
 	unsigned int data_end = data_start;
 	M_skip_past_closer(_raw, data_end, true);
 
-	for(; data_end != 0 && _raw[data_end] != '/'; --data_end) { }
+	for(; data_end != 0; --data_end)
+	{
+		if(data_end > _raw.size())
+			continue;
+		if(_raw[data_end] == '/')
+			break;
+	}
 	L_ASSERT(data_end > 0);
 	--data_end;
 
@@ -277,24 +281,23 @@ std::string MDL_Reader::M_extract_line(const std::string &_raw, unsigned int _of
 }
 
 
-std::string MDL_Reader::M_parse_type(const std::string &_line) const
-{
-	unsigned int start = M_find_symbol(_line, 0, '<') + 1;
-	unsigned int end = M_find_symbol(_line, start, '>');
-
-	L_ASSERT(start < _line.size() && end < _line.size());
-
-	return _line.substr(start, end - start);
-}
-
 std::string MDL_Reader::M_parse_name(const std::string &_line) const
 {
 	unsigned int start = M_find_symbol(_line, 0, '|') + 1;
 	unsigned int end = M_find_symbol(_line, start, '|');
 
-	if(start < _line.size() && end < _line.size())
-		return _line.substr(start, end - start);
-	return {};
+	if(!(start < _line.size() && end < _line.size()))
+		return {};
+
+	L_DEBUG_FUNC_NOARG([&]()
+	{
+		std::string line = _line;
+		for(unsigned int i=start-1; i < end + 1; ++i)
+			line[i] = ' ';
+		L_ASSERT(M_line_is_empty(line));
+	});
+
+	return _line.substr(start, end - start);
 }
 
 MDL_Variable_Stub::fields_t MDL_Reader::M_parse_fields(const std::string &_raw_data) const
@@ -362,6 +365,29 @@ LDS::Vector<std::string> MDL_Reader::M_parse_simple_data(const std::string &_raw
 
 		offset = end + 1;
 	}
+
+	L_DEBUG_FUNC_NOARG([&]()	//	check if line(s) with data contains nothing but data
+	{
+		std::string data_check = _raw_data;
+		unsigned int offset_check = 0;
+		for(unsigned int i=0; i<amount; ++i)
+		{
+			offset_check = M_find_symbol(data_check, offset_check, '\"') + 1;
+			unsigned int end = M_find_symbol(data_check, offset_check, '\"');
+
+			std::string str_value;
+			if(end > offset_check)
+			{
+				for(unsigned int j=offset_check - 1; j<end + 1; ++j)
+					data_check[j] = ' ';
+			}
+
+			offset_check = end + 1;
+		}
+
+		for(unsigned int i=0; i<data_check.size(); ++i)
+			L_ASSERT(data_check[i] == ' ' || data_check[i] == '\t' || data_check[i] == '\n' || data_check[i] == '\r');
+	});
 
 	return result;
 }

@@ -17,13 +17,12 @@ namespace LV
 	{
 		typedef std::map<std::string, LDS::Vector<std::string>> fields_t ;
 
-		std::string type;
 		std::string name;
 		fields_t fields;
 
 		MDL_Variable_Stub(){}
-		MDL_Variable_Stub(const MDL_Variable_Stub& _other) : type(_other.type), name(_other.name), fields(_other.fields) {}
-		MDL_Variable_Stub(MDL_Variable_Stub&& _other) : type((std::string&&)_other.type), name((std::string&&)_other.name), fields((fields_t&&)_other.fields) {}
+		MDL_Variable_Stub(const MDL_Variable_Stub& _other) : name(_other.name), fields(_other.fields) {}
+		MDL_Variable_Stub(MDL_Variable_Stub&& _other) : name((std::string&&)_other.name), fields((fields_t&&)_other.fields) {}
 	};
 
 	class MDL_Reader final
@@ -66,7 +65,6 @@ namespace LV
 		void M_skip_past_closer(const std::string& _raw_data, unsigned int& _offset, bool _ignore_lines = false) const;
 		std::string M_extract_line(const std::string& _raw, unsigned int _offset) const;
 
-		std::string M_parse_type(const std::string& _line) const;
 		std::string M_parse_name(const std::string& _line) const;
 		MDL_Variable_Stub::fields_t M_parse_fields(const std::string& _raw_data) const;
 		unsigned int M_parse_amount(const std::string& _raw_data) const;
