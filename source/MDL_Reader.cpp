@@ -43,7 +43,31 @@ std::string MDL_Reader::M_extract_from_file(const std::string &_path)
 
 	file.close();
 
+	M_preprocess(result);
+
 	return result;
+}
+
+void MDL_Reader::M_preprocess(std::string &_raw) const
+{
+	for(unsigned int i=0; i<_raw.size(); ++i)
+	{
+		if(_raw[i] == '#')
+		{
+			_raw[i] = ' ';
+			++i;
+			for(; i < _raw.size(); ++i)
+			{
+				if(_raw[i] == '#')
+				{
+					_raw[i] = ' ';
+					break;
+				}
+				_raw[i] = ' ';
+			}
+			L_ASSERT(i < _raw.size());
+		}
+	}
 }
 
 
@@ -57,7 +81,42 @@ void MDL_Reader::M_parse_file_ex(const std::string &_path, bool _append)
 
 	unsigned int offset = 0;
 	while(offset < raw_data.size())
-		m_stubs.push_back(M_parse_stub(raw_data, offset));
+	{
+		std::string line = M_extract_line(raw_data, offset);
+		offset += line.size() + 1;
+
+		while(M_line_is_empty(line) && offset < raw_size)
+		{
+			line = M_extract_line(raw_data, offset);
+			offset += line.size() + 1;
+		}
+
+		if(offset >= raw_size)
+			break;
+
+		MDL_Variable_Stub stub;
+		stub.type = M_parse_type(line);
+		L_ASSERT(stub.type.size() > 0);
+		stub.name = M_parse_name(line);
+		L_ASSERT(stub.name.size() > 0);
+
+		L_DEBUG_FUNC_NOARG([&]()
+		{
+			std::list<MDL_Variable_Stub>::const_iterator it = m_stubs.begin();
+			while(it != m_stubs.cend())
+			{
+				L_ASSERT(it->name != stub.name);
+				++it;
+			}
+		});
+
+		std::string data = M_extract_variable_data(raw_data, offset);
+		stub.fields = M_parse_fields(data);
+
+		m_stubs.push_back((MDL_Variable_Stub&&)stub);
+
+//		m_stubs.push_back(M_parse_stub(raw_data, offset));
+	}
 }
 
 unsigned int MDL_Reader::M_find_symbol(const std::string &_str, unsigned int _offset, char _symbol) const
@@ -70,9 +129,14 @@ unsigned int MDL_Reader::M_find_symbol(const std::string &_str, unsigned int _of
 
 MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw, unsigned int &_offset) const
 {
-	unsigned int offset = M_find_symbol(_raw, _offset, '\n');
-	std::string line = _raw.substr(_offset, offset - _offset);
-	_offset = offset + 1;
+	std::string line = M_extract_line(_raw, _offset);
+	_offset += line.size() + 1;
+
+	while(M_line_is_empty(line))
+	{
+		line = M_extract_line(_raw, _offset);
+		_offset += line.size() + 1;
+	}
 
 	MDL_Variable_Stub stub;
 	stub.type = M_parse_type(line);
@@ -83,8 +147,6 @@ MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw, unsigned int
 	std::string data = M_extract_variable_data(_raw, _offset);
 	stub.fields = M_parse_fields(data);
 
-	_offset += data.size() + 1;
-
 	return stub;
 }
 
@@ -93,8 +155,6 @@ bool MDL_Reader::M_line_is_empty(const std::string &_line) const
 {
 	for(unsigned int i=0; i<_line.size(); ++i)
 	{
-		if(_line[i] == '*')
-			return true;
 		if(_line[i] == ' ' || _line[i] == '\t' || _line[i] == '\n' || _line[i] == '\r')
 			continue;
 		return false;
@@ -108,8 +168,6 @@ bool MDL_Reader::M_line_is_opener(const std::string &_line) const
 	bool found_opener = false;
 	for(unsigned int i=0; i<_line.size(); ++i)
 	{
-		if(_line[i] == '*')
-			return false;
 		if(_line[i] == ' ' || _line[i] == '\t' || _line[i] == '\n' || _line[i] == '\r')
 			continue;
 		if(_line[i] == '\\' && found_opener == false)
@@ -126,8 +184,6 @@ bool MDL_Reader::M_line_is_closer(const std::string &_line) const
 	bool found_closer = false;
 	for(unsigned int i=0; i<_line.size(); ++i)
 	{
-		if(_line[i] == '*')
-			return false;
 		if(_line[i] == ' ' || _line[i] == '\t' || _line[i] == '\n' || _line[i] == '\r')
 			continue;
 		if(_line[i] == '/' && found_closer == false)
@@ -141,44 +197,61 @@ bool MDL_Reader::M_line_is_closer(const std::string &_line) const
 
 std::string MDL_Reader::M_extract_variable_data(const std::string &_raw, unsigned int& _offset) const
 {
-	unsigned int data_start = M_find_symbol(_raw, _offset, '\\');
+	unsigned int data_start = _offset;
 
-	while(true)
-	{
-		std::string line = M_extract_line(_raw, data_start);
-		data_start += line.size() + 1;
-		if(M_line_is_opener(line))
-			break;
-	}
+	M_skip_past_opener(_raw, data_start);
 
-	unsigned int data_end = data_start + 1;
-	unsigned int skip_closers = 0;
-	while(true)
-	{
-		std::string line = M_extract_line(_raw, data_end);
-		data_end += line.size() + 1;
-		if(M_line_is_opener(line))
-		{
-			++skip_closers;
-			continue;
-		}
-		if(M_line_is_closer(line))
-		{
-			if(skip_closers > 0)
-			{
-				--skip_closers;
-				continue;
-			}
+	unsigned int data_end = data_start;
+	M_skip_past_closer(_raw, data_end, true);
 
-			data_end -= line.size();
-			break;
-		}
-	}
+	for(; data_end != 0 && _raw[data_end] != '/'; --data_end) { }
+	L_ASSERT(data_end > 0);
+	--data_end;
 
 	L_ASSERT(data_start < _raw.size() && data_end < _raw.size());
 
-	_offset = data_end + 1;
+	_offset = data_end;
+	M_skip_past_closer(_raw, _offset, false);
+
 	return _raw.substr(data_start, data_end - data_start);
+}
+
+void MDL_Reader::M_skip_past_opener(const std::string &_raw_data, unsigned int &_offset, bool _ignore_lines) const
+{
+	while(_offset < _raw_data.size())
+	{
+		std::string line = M_extract_line(_raw_data, _offset);
+		_offset += line.size() + 1;
+		if(M_line_is_opener(line))
+			return;
+		L_ASSERT(_ignore_lines ||  M_line_is_empty(line));
+	}
+	L_ASSERT(false);	//	opener wasn't found
+}
+
+void MDL_Reader::M_skip_past_closer(const std::string &_raw_data, unsigned int &_offset, bool _ignore_lines) const
+{
+	unsigned int openers = 0;
+
+	while(_offset < _raw_data.size())
+	{
+		std::string line = M_extract_line(_raw_data, _offset);
+		_offset += line.size() + 1;
+		if(M_line_is_closer(line))
+		{
+			if(openers == 0)
+				return;
+			else
+				--openers;
+			continue;
+		}
+
+		L_ASSERT(_ignore_lines ||  M_line_is_empty(line));
+
+		if(M_line_is_opener(line))
+			++openers;
+	}
+	L_ASSERT(false);	//	closer wasn't found
 }
 
 std::string MDL_Reader::M_extract_line(const std::string &_raw, unsigned int _offset) const
@@ -203,9 +276,9 @@ std::string MDL_Reader::M_parse_name(const std::string &_line) const
 	unsigned int start = M_find_symbol(_line, 0, '|') + 1;
 	unsigned int end = M_find_symbol(_line, start, '|');
 
-	L_ASSERT(start < _line.size() && end < _line.size());
-
-	return _line.substr(start, end - start);
+	if(start < _line.size() && end < _line.size())
+		return _line.substr(start, end - start);
+	return {};
 }
 
 MDL_Variable_Stub::fields_t MDL_Reader::M_parse_fields(const std::string &_raw_data) const
@@ -216,58 +289,58 @@ MDL_Variable_Stub::fields_t MDL_Reader::M_parse_fields(const std::string &_raw_d
 
 	while(offset < _raw_data.size())
 	{
-		unsigned int line_size = M_find_symbol(_raw_data, offset, '\n') - offset;
-		std::string line = _raw_data.substr(offset, line_size);
-		offset += line_size + 1;
+		std::string line = M_extract_line(_raw_data, offset);
+		offset += line.size() + 1;
 
 		if(M_line_is_empty(line))
 			continue;
 
 		std::string name = M_parse_name(line);
+
 		L_ASSERT(name.size() > 0);
+		L_ASSERT(result.find(name) == result.end());
 
 		std::string simple_data_raw_str = M_extract_variable_data(_raw_data, offset);
 
 		LDS::Vector<std::string> values = M_parse_simple_data(simple_data_raw_str);
 
-		result.emplace(name, values);
-
-//		offset += simple_data_raw_str.size() + 1;
+		result.emplace(name, (LDS::Vector<std::string>&&)values);
 	}
 
 	return result;
 }
 
-unsigned int MDL_Reader::M_parse_amount(const std::string &_line) const
+unsigned int MDL_Reader::M_parse_amount(const std::string &_raw_data) const
 {
 	unsigned int result = 0;
-	for(unsigned int i=0; i<_line.size(); ++i)
+	for(unsigned int i=0; i<_raw_data.size(); ++i)
 	{
-		if(_line[i] == '\"')
+		if(_raw_data[i] == '\"')
 			++result;
 	}
 
 	L_ASSERT(result % 2 == 0);
-	L_ASSERT(result > 0);
 
 	return result / 2;
 }
 
-LDS::Vector<std::string> MDL_Reader::M_parse_simple_data(const std::string &_line) const
+LDS::Vector<std::string> MDL_Reader::M_parse_simple_data(const std::string &_raw_data) const
 {
-	unsigned int amount = M_parse_amount(_line);
+	unsigned int amount = M_parse_amount(_raw_data);
+	L_ASSERT(amount > 0);
+
 	LDS::Vector<std::string> result;
 	result.resize(amount);
 
 	unsigned int offset = 0;
 	for(unsigned int i=0; i<amount; ++i)
 	{
-		offset = M_find_symbol(_line, offset, '\"') + 1;
-		unsigned int end = M_find_symbol(_line, offset, '\"');
+		offset = M_find_symbol(_raw_data, offset, '\"') + 1;
+		unsigned int end = M_find_symbol(_raw_data, offset, '\"');
 
 		std::string str_value;
 		if(end > offset)
-			str_value = _line.substr(offset, end - offset);
+			str_value = _raw_data.substr(offset, end - offset);
 
 		result.push(str_value);
 

@@ -44,6 +44,7 @@ namespace LV
 
 	private:
 		std::string M_extract_from_file(const std::string& _path);
+		void M_preprocess(std::string& _raw) const;
 
 		void M_parse_file_ex(const std::string& _path, bool _append = false);
 		unsigned int M_find_symbol(const std::string& _str, unsigned int _offset, char _symbol) const;
@@ -53,13 +54,15 @@ namespace LV
 		bool M_line_is_opener(const std::string& _line) const;
 		bool M_line_is_closer(const std::string& _line) const;
 		std::string M_extract_variable_data(const std::string& _raw, unsigned int& _offset) const;
+		void M_skip_past_opener(const std::string& _raw_data, unsigned int& _offset, bool _ignore_lines = false) const;
+		void M_skip_past_closer(const std::string& _raw_data, unsigned int& _offset, bool _ignore_lines = false) const;
 		std::string M_extract_line(const std::string& _raw, unsigned int _offset) const;
 
 		std::string M_parse_type(const std::string& _line) const;
 		std::string M_parse_name(const std::string& _line) const;
 		MDL_Variable_Stub::fields_t M_parse_fields(const std::string& _raw_data) const;
-		unsigned int M_parse_amount(const std::string& _line) const;
-		LDS::Vector<std::string> M_parse_simple_data(const std::string& _line) const;
+		unsigned int M_parse_amount(const std::string& _raw_data) const;
+		LDS::Vector<std::string> M_parse_simple_data(const std::string& _raw_data) const;
 
 	};
 
