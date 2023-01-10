@@ -114,8 +114,6 @@ void MDL_Reader::M_parse_file_ex(const std::string &_path, bool _append)
 		stub.fields = M_parse_fields(data);
 
 		m_stubs.push_back((MDL_Variable_Stub&&)stub);
-
-//		m_stubs.push_back(M_parse_stub(raw_data, offset));
 	}
 }
 
@@ -125,29 +123,6 @@ unsigned int MDL_Reader::M_find_symbol(const std::string &_str, unsigned int _of
 		if(_str[_offset] == _symbol)
 			break;
 	return _offset;
-}
-
-MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw, unsigned int &_offset) const
-{
-	std::string line = M_extract_line(_raw, _offset);
-	_offset += line.size() + 1;
-
-	while(M_line_is_empty(line))
-	{
-		line = M_extract_line(_raw, _offset);
-		_offset += line.size() + 1;
-	}
-
-	MDL_Variable_Stub stub;
-	stub.type = M_parse_type(line);
-	L_ASSERT(stub.type.size() > 0);
-	stub.name = M_parse_name(line);
-	L_ASSERT(stub.name.size() > 0);
-
-	std::string data = M_extract_variable_data(_raw, _offset);
-	stub.fields = M_parse_fields(data);
-
-	return stub;
 }
 
 

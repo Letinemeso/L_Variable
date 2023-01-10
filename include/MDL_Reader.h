@@ -48,7 +48,6 @@ namespace LV
 
 		void M_parse_file_ex(const std::string& _path, bool _append = false);
 		unsigned int M_find_symbol(const std::string& _str, unsigned int _offset, char _symbol) const;
-		MDL_Variable_Stub M_parse_stub(const std::string& _raw, unsigned int& _offset) const;
 
 		bool M_line_is_empty(const std::string& _line) const;
 		bool M_line_is_opener(const std::string& _line) const;
