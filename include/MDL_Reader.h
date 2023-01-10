@@ -23,6 +23,7 @@ namespace LV
 		fields_t fields;
 
 		MDL_Variable_Stub(){}
+		MDL_Variable_Stub(const MDL_Variable_Stub& _other) : type(_other.type), name(_other.name), fields(_other.fields) {}
 		MDL_Variable_Stub(MDL_Variable_Stub&& _other) : type((std::string&&)_other.type), name((std::string&&)_other.name), fields((fields_t&&)_other.fields) {}
 	};
 
@@ -40,13 +41,18 @@ namespace LV
 
 	public:
 		void parse_file(const std::string& _path);
+		void add_stub(const MDL_Variable_Stub& _stub);
+		void add_stub(MDL_Variable_Stub&& _stub);
+		void clear();
+		void save_to_file(const std::string& _path) const;
+
+	public:
 		const std::list<MDL_Variable_Stub>& stubs() const;
 
 	private:
 		std::string M_extract_from_file(const std::string& _path);
 		void M_preprocess(std::string& _raw) const;
 
-		void M_parse_file_ex(const std::string& _path, bool _append = false);
 		unsigned int M_find_symbol(const std::string& _str, unsigned int _offset, char _symbol) const;
 
 		bool M_line_is_empty(const std::string& _line) const;

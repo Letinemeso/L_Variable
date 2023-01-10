@@ -17,8 +17,113 @@ MDL_Reader::~MDL_Reader()
 
 void MDL_Reader::parse_file(const std::string &_path)
 {
-	M_parse_file_ex(_path, false);
+	std::string raw_data = M_extract_from_file(_path);
+	unsigned int raw_size = raw_data.size();
+
+	unsigned int offset = 0;
+	while(offset < raw_data.size())
+	{
+		std::string line = M_extract_line(raw_data, offset);
+		offset += line.size() + 1;
+
+		while(M_line_is_empty(line) && offset < raw_size)
+		{
+			line = M_extract_line(raw_data, offset);
+			offset += line.size() + 1;
+		}
+
+		if(offset >= raw_size)
+			break;
+
+		MDL_Variable_Stub stub;
+		stub.type = M_parse_type(line);
+		L_ASSERT(stub.type.size() > 0);
+		stub.name = M_parse_name(line);
+		L_ASSERT(stub.name.size() > 0);
+
+		L_DEBUG_FUNC_NOARG([&]()
+		{
+			std::list<MDL_Variable_Stub>::const_iterator it = m_stubs.cbegin();
+			while(it != m_stubs.cend())
+			{
+				L_ASSERT(it->name != stub.name);
+				++it;
+			}
+		});
+
+		std::string data = M_extract_variable_data(raw_data, offset);
+		stub.fields = M_parse_fields(data);
+
+		m_stubs.push_back((MDL_Variable_Stub&&)stub);
+	}
 }
+
+void MDL_Reader::add_stub(const MDL_Variable_Stub& _stub)
+{
+	L_DEBUG_FUNC_NOARG([&]()
+	{
+		std::list<MDL_Variable_Stub>::const_iterator it = m_stubs.cbegin();
+		while(it != m_stubs.cend())
+		{
+			L_ASSERT(it->name != _stub.name);
+			++it;
+		}
+	});
+
+	m_stubs.push_back(_stub);
+}
+
+void MDL_Reader::add_stub(MDL_Variable_Stub&& _stub)
+{
+	L_DEBUG_FUNC_NOARG([&]()
+	{
+		std::list<MDL_Variable_Stub>::const_iterator it = m_stubs.cbegin();
+		while(it != m_stubs.cend())
+		{
+			L_ASSERT(it->name != _stub.name);
+			++it;
+		}
+	});
+
+	m_stubs.push_back((MDL_Variable_Stub&&)_stub);
+}
+
+void MDL_Reader::clear()
+{
+	m_stubs.clear();
+}
+
+void MDL_Reader::save_to_file(const std::string &_path) const
+{
+	std::ofstream file(_path + ".mdl", std::ofstream::binary);
+	L_ASSERT(file.is_open());
+
+	file << "# This file was auto generated #\n\n";
+
+	std::list<MDL_Variable_Stub>::const_iterator stub_it = m_stubs.cbegin();
+	while(stub_it != m_stubs.end())
+	{
+		file << "<" << stub_it->type << "> " << "|" << stub_it->name << "|\n\\\n";
+
+		for(MDL_Variable_Stub::fields_t::const_iterator variable_it = stub_it->fields.cbegin(); variable_it != stub_it->fields.cend(); ++variable_it)
+		{
+			file << "\t|" << variable_it->first << "|\n\t\\\n\t\t";
+
+			for(unsigned int i=0; i<variable_it->second.size(); ++i)
+				file << "\"" << variable_it->second[i] << "\" ";
+
+			file << "\n\t/\n";
+		}
+
+		file << "/\n\n";
+
+		++stub_it;
+	}
+
+	file.close();
+}
+
+
 
 const std::list<MDL_Variable_Stub>& MDL_Reader::stubs() const
 {
@@ -70,52 +175,6 @@ void MDL_Reader::M_preprocess(std::string &_raw) const
 	}
 }
 
-
-void MDL_Reader::M_parse_file_ex(const std::string &_path, bool _append)
-{
-	if(!_append)
-		m_stubs.clear();
-
-	std::string raw_data = M_extract_from_file(_path);
-	unsigned int raw_size = raw_data.size();
-
-	unsigned int offset = 0;
-	while(offset < raw_data.size())
-	{
-		std::string line = M_extract_line(raw_data, offset);
-		offset += line.size() + 1;
-
-		while(M_line_is_empty(line) && offset < raw_size)
-		{
-			line = M_extract_line(raw_data, offset);
-			offset += line.size() + 1;
-		}
-
-		if(offset >= raw_size)
-			break;
-
-		MDL_Variable_Stub stub;
-		stub.type = M_parse_type(line);
-		L_ASSERT(stub.type.size() > 0);
-		stub.name = M_parse_name(line);
-		L_ASSERT(stub.name.size() > 0);
-
-		L_DEBUG_FUNC_NOARG([&]()
-		{
-			std::list<MDL_Variable_Stub>::const_iterator it = m_stubs.begin();
-			while(it != m_stubs.cend())
-			{
-				L_ASSERT(it->name != stub.name);
-				++it;
-			}
-		});
-
-		std::string data = M_extract_variable_data(raw_data, offset);
-		stub.fields = M_parse_fields(data);
-
-		m_stubs.push_back((MDL_Variable_Stub&&)stub);
-	}
-}
 
 unsigned int MDL_Reader::M_find_symbol(const std::string &_str, unsigned int _offset, char _symbol) const
 {
