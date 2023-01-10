@@ -3,7 +3,6 @@
 
 #include <string>
 #include <map>
-#include <list>
 #include <fstream>
 
 #include <Data_Structures/Vector.h>
@@ -29,8 +28,11 @@ namespace LV
 
 	class MDL_Reader final
 	{
+	public:
+		typedef std::map<std::string, MDL_Variable_Stub> Stub_Map;
+
 	private:
-		std::list<MDL_Variable_Stub> m_stubs;
+		Stub_Map m_stubs;
 
 	public:
 		MDL_Reader();
@@ -47,7 +49,8 @@ namespace LV
 		void save_to_file(const std::string& _path) const;
 
 	public:
-		const std::list<MDL_Variable_Stub>& stubs() const;
+		const Stub_Map& stubs() const;
+		const MDL_Variable_Stub& get_stub(const std::string& _name) const;
 
 	private:
 		std::string M_extract_from_file(const std::string& _path);

@@ -41,51 +41,27 @@ void MDL_Reader::parse_file(const std::string &_path)
 		stub.name = M_parse_name(line);
 		L_ASSERT(stub.name.size() > 0);
 
-		L_DEBUG_FUNC_NOARG([&]()
-		{
-			std::list<MDL_Variable_Stub>::const_iterator it = m_stubs.cbegin();
-			while(it != m_stubs.cend())
-			{
-				L_ASSERT(it->name != stub.name);
-				++it;
-			}
-		});
+		L_ASSERT(m_stubs.find(stub.name) == m_stubs.end());
 
 		std::string data = M_extract_variable_data(raw_data, offset);
 		stub.fields = M_parse_fields(data);
 
-		m_stubs.push_back((MDL_Variable_Stub&&)stub);
+		m_stubs.emplace(stub.name, (MDL_Variable_Stub&&)stub);
 	}
 }
 
 void MDL_Reader::add_stub(const MDL_Variable_Stub& _stub)
 {
-	L_DEBUG_FUNC_NOARG([&]()
-	{
-		std::list<MDL_Variable_Stub>::const_iterator it = m_stubs.cbegin();
-		while(it != m_stubs.cend())
-		{
-			L_ASSERT(it->name != _stub.name);
-			++it;
-		}
-	});
+	L_ASSERT(m_stubs.find(_stub.name) == m_stubs.end());
 
-	m_stubs.push_back(_stub);
+	m_stubs.emplace(_stub.name, _stub);
 }
 
 void MDL_Reader::add_stub(MDL_Variable_Stub&& _stub)
 {
-	L_DEBUG_FUNC_NOARG([&]()
-	{
-		std::list<MDL_Variable_Stub>::const_iterator it = m_stubs.cbegin();
-		while(it != m_stubs.cend())
-		{
-			L_ASSERT(it->name != _stub.name);
-			++it;
-		}
-	});
+	L_ASSERT(m_stubs.find(_stub.name) == m_stubs.end());
 
-	m_stubs.push_back((MDL_Variable_Stub&&)_stub);
+	m_stubs.emplace(_stub.name, (MDL_Variable_Stub&&)_stub);
 }
 
 void MDL_Reader::clear()
@@ -100,12 +76,11 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 
 	file << "# This file was auto generated #\n\n";
 
-	std::list<MDL_Variable_Stub>::const_iterator stub_it = m_stubs.cbegin();
-	while(stub_it != m_stubs.end())
+	for(Stub_Map::const_iterator stub_it = m_stubs.cbegin(); stub_it != m_stubs.end(); ++stub_it)
 	{
-		file << "<" << stub_it->type << "> " << "|" << stub_it->name << "|\n\\\n";
+		file << "<" << stub_it->second.type << "> " << "|" << stub_it->second.name << "|\n\\\n";
 
-		for(MDL_Variable_Stub::fields_t::const_iterator variable_it = stub_it->fields.cbegin(); variable_it != stub_it->fields.cend(); ++variable_it)
+		for(MDL_Variable_Stub::fields_t::const_iterator variable_it = stub_it->second.fields.cbegin(); variable_it != stub_it->second.fields.cend(); ++variable_it)
 		{
 			file << "\t|" << variable_it->first << "|\n\t\\\n\t\t";
 
@@ -116,8 +91,6 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 		}
 
 		file << "/\n\n";
-
-		++stub_it;
 	}
 
 	file.close();
@@ -125,9 +98,16 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 
 
 
-const std::list<MDL_Variable_Stub>& MDL_Reader::stubs() const
+const MDL_Reader::Stub_Map& MDL_Reader::stubs() const
 {
 	return m_stubs;
+}
+
+const MDL_Variable_Stub& MDL_Reader::get_stub(const std::string &_name) const
+{
+	 Stub_Map::const_iterator it = m_stubs.find(_name);
+	 L_ASSERT(it != m_stubs.end());
+	 return it->second;
 }
 
 
@@ -157,21 +137,23 @@ void MDL_Reader::M_preprocess(std::string &_raw) const
 {
 	for(unsigned int i=0; i<_raw.size(); ++i)
 	{
-		if(_raw[i] == '#')
+		if(_raw[i] != '#')
+			continue;
+
+		_raw[i] = ' ';
+		++i;
+
+		for(; i < _raw.size(); ++i)
 		{
-			_raw[i] = ' ';
-			++i;
-			for(; i < _raw.size(); ++i)
+			if(_raw[i] == '#')
 			{
-				if(_raw[i] == '#')
-				{
-					_raw[i] = ' ';
-					break;
-				}
 				_raw[i] = ' ';
+				break;
 			}
-			L_ASSERT(i < _raw.size());
+			_raw[i] = ' ';
 		}
+
+		L_ASSERT(i < _raw.size());
 	}
 }
 

@@ -30,16 +30,20 @@ bool Type_Manager::validate(const std::string &_type_name, const std::string &_v
 	return utility.validation_func(_value_as_string);
 }
 
-void Type_Manager::parse(const std::string& _type_name, const std::string& _value_as_string, void* _allocate_to)
+void Type_Manager::parse(const std::string& _type_name, const LDS::Vector<std::string>& _values_as_string, void* _allocate_to)
 {
 	regtypes_t::iterator utility_it = m_registred_types.find(_type_name);
 	L_ASSERT(utility_it != m_registred_types.end());
 
 	const Type_Utility& utility = utility_it->second;
 
-	L_ASSERT(utility.validation_func(_value_as_string));
+	L_DEBUG_FUNC_NOARG([&]()	//	crashes if validation is failed
+	{
+		for(unsigned int i=0; i<_values_as_string.size(); ++i)
+			L_ASSERT(utility.validation_func(_values_as_string[i]));
+	});
 
-	utility.parse_func(_allocate_to, _value_as_string);
+	utility.parse_func(_allocate_to, _values_as_string);
 }
 
 void Type_Manager::assign(const std::string& _type_name, void* _data_vptr, void* _assign_to)

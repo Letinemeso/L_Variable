@@ -4,6 +4,8 @@
 #include <string>
 #include <map>
 
+#include <Vector.h>
+
 #include <Debug/Debug.h>
 
 namespace LV
@@ -12,7 +14,7 @@ namespace LV
 	struct Type_Utility
 	{
 		typedef bool(*validation_func_t)(const std::string& _valuea_as_string);
-		typedef void(*parse_func_t)(void*& _variable_vptr, const std::string& _value_as_string);
+		typedef void(*parse_func_t)(void*& _variable_vptr, const LDS::Vector<std::string>& _values_as_string);
 		typedef void(*assign_func_t)(void*& _variable_vptr, void* _data_ptr);
 
 		validation_func_t validation_func = nullptr;
@@ -34,7 +36,7 @@ namespace LV
 
 	public:
 		static bool validate(const std::string& _type_name, const std::string& _value_as_string);
-		static void parse(const std::string& _type_name, const std::string& _value_as_string, void* _allocate_to);
+		static void parse(const std::string& _type_name, const LDS::Vector<std::string>& _values_as_string, void* _allocate_to);
 		static void assign(const std::string& _type_name, void* _data_vptr, void* _assign_to);
 
 	public:
