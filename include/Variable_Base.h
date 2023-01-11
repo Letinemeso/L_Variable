@@ -24,8 +24,8 @@
 			parent_type::assign_values(_stub); \
 			m_type_history = m_type_history + "/" + std::string(#variable_type);
 
-	#define ADD_FIELD(type, field_reference, field_name) { \
-			LV::MDL_Variable_Stub::fields_t::const_iterator check = _stub.fields.find(field_name); \
+	#define ADD_FIELD(type, field_reference) { \
+			LV::MDL_Variable_Stub::fields_t::const_iterator check = _stub.fields.find(#field_reference); \
 			if(check != _stub.fields.cend())  \
 				LV::Type_Manager::parse(#type, check->second, (void*)(&field_reference)); \
 		}

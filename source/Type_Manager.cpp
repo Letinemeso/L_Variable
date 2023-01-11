@@ -45,14 +45,3 @@ void Type_Manager::parse(const std::string& _type_name, const LDS::Vector<std::s
 
 	utility.parse_func(_allocate_to, _values_as_string);
 }
-
-void Type_Manager::assign(const std::string& _type_name, void* _data_vptr, void* _assign_to)
-{
-	regtypes_t::iterator utility_it = m_registred_types.find(_type_name);
-	if(utility_it == m_registred_types.end())
-		return;
-
-	const Type_Utility& utility = utility_it->second;
-
-	utility.assign_func(_assign_to, _data_vptr);
-}
