@@ -78,7 +78,7 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 	{
 		file << "|" << stub_it->second.name << "|\n\\\n";
 
-		for(MDL_Variable_Stub::fields_t::const_iterator variable_it = stub_it->second.fields.cbegin(); variable_it != stub_it->second.fields.cend(); ++variable_it)
+		for(std::map<std::string, LDS::Vector<std::string>>::const_iterator variable_it = stub_it->second.fields.cbegin(); variable_it != stub_it->second.fields.cend(); ++variable_it)
 		{
 			file << "\t|" << variable_it->first << "|\n\t\\\n\t\t";
 
@@ -300,11 +300,11 @@ std::string MDL_Reader::M_parse_name(const std::string &_line) const
 	return _line.substr(start, end - start);
 }
 
-MDL_Variable_Stub::fields_t MDL_Reader::M_parse_fields(const std::string &_raw_data) const
+std::map<std::string, LDS::Vector<std::string>> MDL_Reader::M_parse_fields(const std::string &_raw_data) const
 {
 	unsigned int offset = 0;
 
-	MDL_Variable_Stub::fields_t result;
+	std::map<std::string, LDS::Vector<std::string>> result;
 
 	while(offset < _raw_data.size())
 	{

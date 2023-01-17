@@ -25,7 +25,7 @@
 			m_type_history = m_type_history + "/" + std::string(#variable_type);
 
 	#define ADD_FIELD(type, field_reference) { \
-			LV::MDL_Variable_Stub::fields_t::const_iterator check = _stub.fields.find(#field_reference); \
+			std::map<std::string, LDS::Vector<std::string>>::const_iterator check = _stub.fields.find(#field_reference); \
 			if(check != _stub.fields.cend())  \
 				LV::Type_Manager::parse(#type, check->second, (void*)(&field_reference)); \
 		}
@@ -65,6 +65,24 @@ namespace LV
 
 	template<typename T>
 	T* cast_variable(Variable_Base* _var)
+	{
+		if(_var == nullptr)
+			return nullptr;
+
+		std::string T_type = T::get_estimated_type();
+		std::string Var_type = _var->get_actual_type();
+
+		if(Var_type.size() < T_type.size())
+			return nullptr;
+
+		if(Var_type.substr(0, T_type.size()) != T_type)
+			return nullptr;
+
+		return (T*)_var;
+	}
+
+	template<typename T>
+	const T* cast_variable(const Variable_Base* _var)
 	{
 		if(_var == nullptr)
 			return nullptr;
