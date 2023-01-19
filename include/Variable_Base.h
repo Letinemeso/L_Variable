@@ -30,7 +30,7 @@
 				LV::Type_Manager::parse(#type, check->second, (void*)(&field_reference)); \
 		}
 
-	#define FIELDS_END }
+	#define FIELDS_END M_on_values_assigned(); }
 
 #endif
 
@@ -50,6 +50,9 @@ namespace LV
 		const std::string& get_actual_history() const { return m_type_history; }
 
 		virtual void assign_values(const MDL_Variable_Stub& /*_stub*/) { m_type_history = ""; }
+
+	protected:
+		virtual void M_on_values_assigned() { };
 
 	public:
 		Variable_Base();
