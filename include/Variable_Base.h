@@ -41,7 +41,6 @@ namespace LV
 	class Variable_Base
 	{
 	protected:
-		std::string m_name;
 		std::string m_type_history;
 
 	public:
