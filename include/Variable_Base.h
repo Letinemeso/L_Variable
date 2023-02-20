@@ -71,8 +71,8 @@ namespace LV
 		if(_var == nullptr)
 			return nullptr;
 
-		std::string T_type = T::get_estimated_type();
-		std::string Var_type = _var->get_actual_type();
+        std::string T_type = T::get_estimated_history();
+        std::string Var_type = _var->get_actual_history();
 
 		if(Var_type.size() < T_type.size())
 			return nullptr;
@@ -89,8 +89,8 @@ namespace LV
 		if(_var == nullptr)
 			return nullptr;
 
-		std::string T_type = T::get_estimated_type();
-		std::string Var_type = _var->get_actual_type();
+        std::string T_type = T::get_estimated_history();
+        std::string Var_type = _var->get_actual_history();
 
 		if(Var_type.size() < T_type.size())
 			return nullptr;
