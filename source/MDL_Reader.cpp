@@ -35,31 +35,31 @@ void MDL_Reader::parse_file(const std::string &_path)
 		if(offset >= raw_size)
 			break;
 
-		MDL_Variable_Stub stub;
-		stub.name = M_parse_name(line);
-		L_ASSERT(stub.name.size() > 0);
+        MDL_Variable_Stub stub;
+        std::string name = M_parse_name(line);
+        L_ASSERT(name.size() > 0);
 
-		L_ASSERT(m_stubs.find(stub.name) == m_stubs.end());
+        L_ASSERT(m_stubs.find(name) == m_stubs.end());
 
 		std::string data = M_extract_variable_data(raw_data, offset);
-		stub.fields = M_parse_fields(data);
+        stub = M_parse_stub(data);
 
-		m_stubs.emplace(stub.name, (MDL_Variable_Stub&&)stub);
+        m_stubs.emplace((std::string&&)name, (MDL_Variable_Stub&&)stub);
 	}
 }
 
 void MDL_Reader::add_stub(const MDL_Variable_Stub& _stub)
 {
-	L_ASSERT(m_stubs.find(_stub.name) == m_stubs.end());
+//	L_ASSERT(m_stubs.find(_stub.name) == m_stubs.end());
 
-	m_stubs.emplace(_stub.name, _stub);
+//	m_stubs.emplace(_stub.name, _stub);
 }
 
 void MDL_Reader::add_stub(MDL_Variable_Stub&& _stub)
 {
-	L_ASSERT(m_stubs.find(_stub.name) == m_stubs.end());
+//	L_ASSERT(m_stubs.find(_stub.name) == m_stubs.end());
 
-	m_stubs.emplace(_stub.name, (MDL_Variable_Stub&&)_stub);
+//	m_stubs.emplace(_stub.name, (MDL_Variable_Stub&&)_stub);
 }
 
 void MDL_Reader::clear()
@@ -76,9 +76,9 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 
 	for(Stub_Map::const_iterator stub_it = m_stubs.cbegin(); stub_it != m_stubs.end(); ++stub_it)
 	{
-		file << "|" << stub_it->second.name << "|\n\\\n";
+        file << "|" << stub_it->first << "|\n\\\n";
 
-		for(std::map<std::string, LDS::Vector<std::string>>::const_iterator variable_it = stub_it->second.fields.cbegin(); variable_it != stub_it->second.fields.cend(); ++variable_it)
+        for(std::map<std::string, LDS::Vector<std::string>>::const_iterator variable_it = stub_it->second.fields.cbegin(); variable_it != stub_it->second.fields.cend(); ++variable_it)
 		{
 			file << "\t|" << variable_it->first << "|\n\t\\\n\t\t";
 
@@ -162,6 +162,16 @@ unsigned int MDL_Reader::M_find_symbol(const std::string &_str, unsigned int _of
 		if(_str[_offset] == _symbol)
 			break;
 	return _offset;
+}
+
+unsigned int MDL_Reader::M_find_symbol_from_end(const std::string &_str, int _offset, char _symbol) const
+{
+    for(; _offset > 0; --_offset)
+        if(_str[_offset] == _symbol)
+            break;
+    if(_offset == -1)
+        return _str.size();
+    return _offset;
 }
 
 
@@ -284,7 +294,8 @@ std::string MDL_Reader::M_extract_line(const std::string &_raw, unsigned int _of
 std::string MDL_Reader::M_parse_name(const std::string &_line) const
 {
 	unsigned int start = M_find_symbol(_line, 0, '|') + 1;
-	unsigned int end = M_find_symbol(_line, start, '|');
+//	unsigned int end = M_find_symbol(_line, start, '|');
+    unsigned int end = M_find_symbol_from_end(_line, _line.size() - 1, '|');
 
 	if(!(start < _line.size() && end < _line.size()))
 		return {};
@@ -300,11 +311,11 @@ std::string MDL_Reader::M_parse_name(const std::string &_line) const
 	return _line.substr(start, end - start);
 }
 
-std::map<std::string, LDS::Vector<std::string>> MDL_Reader::M_parse_fields(const std::string &_raw_data) const
+MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw_data) const
 {
 	unsigned int offset = 0;
 
-	std::map<std::string, LDS::Vector<std::string>> result;
+    MDL_Variable_Stub result;
 
 	while(offset < _raw_data.size())
 	{
@@ -316,14 +327,26 @@ std::map<std::string, LDS::Vector<std::string>> MDL_Reader::M_parse_fields(const
 
 		std::string name = M_parse_name(line);
 
-		L_ASSERT(name.size() > 0);
-		L_ASSERT(result.find(name) == result.end());
+        if(name[0] == '|' && name[name.size() - 1] == '|')
+        {
+            name = M_parse_name(name);
 
-		std::string simple_data_raw_str = M_extract_variable_data(_raw_data, offset);
+            L_ASSERT(name.size() > 0);
+            L_ASSERT(result.fields.find(name) == result.fields.end());
 
-		LDS::Vector<std::string> values = M_parse_simple_data(simple_data_raw_str);
+//            unsigned int child_offset = offset;
 
-		result.emplace(name, (LDS::Vector<std::string>&&)values);
+            std::string raw_child_data = M_extract_variable_data(_raw_data, offset);
+            MDL_Variable_Stub child = M_parse_stub(raw_child_data);
+
+            result.childs.emplace((std::string&&)name, (MDL_Variable_Stub&&)child);
+        }
+        else
+        {
+            std::string simple_data_raw_str = M_extract_variable_data(_raw_data, offset);
+            LDS::Vector<std::string> values = M_parse_simple_data(simple_data_raw_str);
+            result.fields.emplace(name, (LDS::Vector<std::string>&&)values);
+        }
 	}
 
 	return result;

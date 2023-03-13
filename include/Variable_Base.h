@@ -30,6 +30,13 @@
 				LV::Type_Manager::parse(#type, check->second, (void*)(&field_reference)); \
 		}
 
+    #define ADD_CHILD(child_reference) \
+            { \
+                std::map<std::string, LV::MDL_Variable_Stub>::const_iterator check = _stub.childs.find(#child_reference); \
+                if(check != _stub.childs.cend())  \
+                    child_reference.assign_values(check->second); \
+            }
+
 	#define FIELDS_END M_on_values_assigned(); }
 
 #endif
