@@ -248,11 +248,20 @@ std::string MDL_Reader::M_extract_variable_data(const std::string &_raw, unsigne
 
 void MDL_Reader::M_skip_past_opener(const std::string &_raw_data, unsigned int &_offset, bool _ignore_lines) const
 {
+    bool slash_inside_value = false;
+
 	while(_offset < _raw_data.size())
 	{
-		std::string line = M_extract_line(_raw_data, _offset);
-		_offset += line.size() + 1;
-		if(M_line_is_opener(line))
+        std::string line = M_extract_line(_raw_data, _offset);
+        _offset += line.size() + 1;
+
+        unsigned int quotes_amount = 0;
+        for(unsigned int i=0; i<line.size(); ++i)
+            quotes_amount += (unsigned int)(line[i] == '\"');
+        if(quotes_amount % 2 == 1)
+            slash_inside_value = !slash_inside_value;
+
+        if(M_line_is_opener(line) && !slash_inside_value)
 			return;
 		L_ASSERT(_ignore_lines ||  M_line_is_empty(line));
 	}
@@ -262,12 +271,20 @@ void MDL_Reader::M_skip_past_opener(const std::string &_raw_data, unsigned int &
 void MDL_Reader::M_skip_past_closer(const std::string &_raw_data, unsigned int &_offset, bool _ignore_lines) const
 {
 	unsigned int openers = 0;
+    bool backslash_inside_value = false;
 
 	while(_offset < _raw_data.size())
 	{
 		std::string line = M_extract_line(_raw_data, _offset);
 		_offset += line.size() + 1;
-		if(M_line_is_closer(line))
+
+        unsigned int quotes_amount = 0;
+        for(unsigned int i=0; i<line.size(); ++i)
+            quotes_amount += (unsigned int)(line[i] == '\"');
+        if(quotes_amount % 2 == 1)
+            backslash_inside_value = !backslash_inside_value;
+
+        if(M_line_is_closer(line) && !backslash_inside_value)
 		{
 			if(openers == 0)
 				return;
@@ -278,7 +295,7 @@ void MDL_Reader::M_skip_past_closer(const std::string &_raw_data, unsigned int &
 
 		L_ASSERT(_ignore_lines ||  M_line_is_empty(line));
 
-		if(M_line_is_opener(line))
+        if(M_line_is_opener(line) && !backslash_inside_value)
 			++openers;
 	}
 	L_ASSERT(false);	//	closer wasn't found
