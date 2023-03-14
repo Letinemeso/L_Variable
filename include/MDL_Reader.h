@@ -41,8 +41,8 @@ namespace LV
 
 	public:
 		void parse_file(const std::string& _path);
-		void add_stub(const MDL_Variable_Stub& _stub);
-		void add_stub(MDL_Variable_Stub&& _stub);
+        void add_stub(const std::string& _name, const MDL_Variable_Stub& _stub);
+        void add_stub(const std::string& _name, MDL_Variable_Stub&& _stub);
 		void clear();
 		void save_to_file(const std::string& _path) const;
 
@@ -50,7 +50,9 @@ namespace LV
 		const Stub_Map& stubs() const;
 		const MDL_Variable_Stub& get_stub(const std::string& _name) const;
 
-	private:
+    private:
+        void M_save_stub_to_file(std::ofstream& _file, const std::string& _name, const MDL_Variable_Stub& _stub, unsigned int _nesting_level = 0) const;
+
 		std::string M_extract_from_file(const std::string& _path);
 		void M_preprocess(std::string& _raw) const;
 

@@ -48,18 +48,18 @@ void MDL_Reader::parse_file(const std::string &_path)
 	}
 }
 
-void MDL_Reader::add_stub(const MDL_Variable_Stub& _stub)
+void MDL_Reader::add_stub(const std::string& _name, const MDL_Variable_Stub& _stub)
 {
-//	L_ASSERT(m_stubs.find(_stub.name) == m_stubs.end());
+    L_ASSERT(m_stubs.find(_name) == m_stubs.end());
 
-//	m_stubs.emplace(_stub.name, _stub);
+    m_stubs.emplace(_name, _stub);
 }
 
-void MDL_Reader::add_stub(MDL_Variable_Stub&& _stub)
+void MDL_Reader::add_stub(const std::string& _name, MDL_Variable_Stub&& _stub)
 {
-//	L_ASSERT(m_stubs.find(_stub.name) == m_stubs.end());
+    L_ASSERT(m_stubs.find(_name) == m_stubs.end());
 
-//	m_stubs.emplace(_stub.name, (MDL_Variable_Stub&&)_stub);
+    m_stubs.emplace(_name, (MDL_Variable_Stub&&)_stub);
 }
 
 void MDL_Reader::clear()
@@ -74,22 +74,11 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 
 	file << "# This file was auto generated #\n\n";
 
-	for(Stub_Map::const_iterator stub_it = m_stubs.cbegin(); stub_it != m_stubs.end(); ++stub_it)
-	{
-        file << "|" << stub_it->first << "|\n\\\n";
-
-        for(std::map<std::string, LDS::Vector<std::string>>::const_iterator variable_it = stub_it->second.fields.cbegin(); variable_it != stub_it->second.fields.cend(); ++variable_it)
-		{
-			file << "\t|" << variable_it->first << "|\n\t\\\n\t\t";
-
-			for(unsigned int i=0; i<variable_it->second.size(); ++i)
-				file << "\"" << variable_it->second[i] << "\" ";
-
-			file << "\n\t/\n";
-		}
-
-		file << "/\n\n";
-	}
+    for(Stub_Map::const_iterator stub_it = m_stubs.cbegin(); stub_it != m_stubs.cend(); ++stub_it)
+    {
+        M_save_stub_to_file(file, stub_it->first, stub_it->second);
+        file << "\n";
+    }
 
 	file.close();
 }
@@ -108,6 +97,54 @@ const MDL_Variable_Stub& MDL_Reader::get_stub(const std::string &_name) const
 	 return it->second;
 }
 
+
+
+void MDL_Reader::M_save_stub_to_file(std::ofstream &_file, const std::string& _name, const MDL_Variable_Stub &_stub, unsigned int _nesting_level) const
+{
+    auto output_tabs = [&](unsigned int _amount)
+    {
+        for(unsigned int i=0; i<_amount; ++i)
+            _file << '\t';
+    };
+
+    output_tabs(_nesting_level);
+
+    _file << "||" << _name << "||" << "\n";
+
+    output_tabs(_nesting_level);
+
+    _file << "\\\n";
+
+    for(std::map<std::string, LDS::Vector<std::string>>::const_iterator fields_it = _stub.fields.cbegin(); fields_it != _stub.fields.cend(); ++fields_it)
+    {
+        output_tabs(_nesting_level + 1);
+
+        _file << "|" << fields_it->first << "|" << "\n";
+
+        output_tabs(_nesting_level + 1);
+
+        _file << "\\\n";
+
+        output_tabs(_nesting_level + 2);
+
+        for(LDS::Vector<std::string>::Const_Iterator values_it = fields_it->second.const_iterator(); !values_it.end_reached(); ++values_it)
+            _file << "\"" << *values_it << "\" ";
+
+        _file << "\n";
+
+        output_tabs(_nesting_level + 1);
+
+        _file << "/\n";
+    }
+
+
+    for(std::map<std::string, MDL_Variable_Stub>::const_iterator child_it = _stub.childs.cbegin(); child_it != _stub.childs.cend(); ++child_it)
+        M_save_stub_to_file(_file, child_it->first, child_it->second, _nesting_level + 1);
+
+    output_tabs(_nesting_level);
+
+    _file << "/\n";
+}
 
 
 std::string MDL_Reader::M_extract_from_file(const std::string &_path)
