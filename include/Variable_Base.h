@@ -2,10 +2,11 @@
 #define TYPE_H
 
 #include <string>
-#include <map>
 
-#include "Type_Manager.h"
-#include "MDL_Reader.h"
+#include <Data_Structures/Map.h>
+
+#include <Type_Manager.h>
+#include <MDL_Reader.h>
 
 #ifndef VARIABLE
 
@@ -25,23 +26,23 @@
 			m_type_history = m_type_history + "/" + std::string(#variable_type);
 
 	#define ADD_FIELD(type, field_reference) { \
-			std::map<std::string, LDS::Vector<std::string>>::const_iterator check = _stub.fields.find(#field_reference); \
-			if(check != _stub.fields.cend())  \
-				LV::Type_Manager::parse(#type, check->second, (void*)(&field_reference)); \
+            LDS::Map<std::string, LDS::Vector<std::string>>::Const_Iterator check = _stub.fields.find(#field_reference); \
+            if(check.is_ok())  \
+                LV::Type_Manager::parse(#type, *check, (void*)(&field_reference)); \
 		}
 
     #define ADD_CHILD(child_reference) \
             { \
-                std::map<std::string, LV::MDL_Variable_Stub>::const_iterator check = _stub.childs.find(#child_reference); \
-                if(check != _stub.childs.cend())  \
-                    (child_reference).assign_values(check->second); \
+                LDS::Map<std::string, LV::MDL_Variable_Stub>::Const_Iterator check = _stub.childs.find(#child_reference); \
+                if(check.is_ok())  \
+                    (child_reference).assign_values(*check); \
             }
 
     #define ADD_CHILD(child_name, child_reference) \
             { \
-                std::map<std::string, LV::MDL_Variable_Stub>::const_iterator check = _stub.childs.find(child_name); \
-                if(check != _stub.childs.cend())  \
-                    (child_reference).assign_values(check->second); \
+                LDS::Map<std::string, LV::MDL_Variable_Stub>::Const_Iterator check = _stub.childs.find(child_name); \
+                if(check.is_ok())  \
+                    (child_reference).assign_values(*check); \
             }
 
 	#define FIELDS_END M_on_values_assigned(); }

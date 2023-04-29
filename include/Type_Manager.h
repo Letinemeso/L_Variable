@@ -2,9 +2,9 @@
 #define TYPE_MANAGER_H
 
 #include <string>
-#include <map>
 
 #include <Data_Structures/Vector.h>
+#include <Data_Structures/Map.h>
 
 #include <L_Debug/L_Debug.h>
 
@@ -19,6 +19,7 @@ namespace LV
 		validation_func_t validation_func = nullptr;
 		parse_func_t parse_func = nullptr;
 
+        Type_Utility() { }
 		Type_Utility(validation_func_t _validation_func, parse_func_t _parse_func)
 			: validation_func(_validation_func), parse_func(_parse_func) { }
 	};
@@ -26,8 +27,8 @@ namespace LV
 	class Type_Manager final
 	{
 	private:
-		typedef std::map<std::string, Type_Utility> regtypes_t;
-		static std::map<std::string, Type_Utility> m_registred_types;
+        typedef LDS::Map<std::string, Type_Utility> regtypes_t;
+        static LDS::Map<std::string, Type_Utility> m_registred_types;
 
 	public:
 		static void register_type(const std::string& _type_name, const Type_Utility& _utility);

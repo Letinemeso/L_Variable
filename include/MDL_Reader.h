@@ -2,10 +2,10 @@
 #define MDL_READER_H
 
 #include <string>
-#include <map>
 #include <fstream>
 
 #include <Data_Structures/Vector.h>
+#include <Data_Structures/Map.h>
 
 #include <L_Debug/L_Debug.h>
 
@@ -15,19 +15,19 @@ namespace LV
 
 	struct MDL_Variable_Stub
     {
-        std::map<std::string, LDS::Vector<std::string>> fields;
-        std::map<std::string, MDL_Variable_Stub> childs;
+        LDS::Map<std::string, LDS::Vector<std::string>> fields;
+        LDS::Map<std::string, MDL_Variable_Stub> childs;
 
 		MDL_Variable_Stub(){}
         MDL_Variable_Stub(const MDL_Variable_Stub& _other) : fields(_other.fields) {}
-        MDL_Variable_Stub(MDL_Variable_Stub&& _other) : fields((std::map<std::string, LDS::Vector<std::string>>&&)_other.fields), childs((std::map<std::string, MDL_Variable_Stub>&&)_other.childs) {}
-        void operator =(MDL_Variable_Stub&& _other) { fields = (std::map<std::string, LDS::Vector<std::string>>&&)_other.fields; childs = (std::map<std::string, MDL_Variable_Stub>&&)_other.childs; }
+        MDL_Variable_Stub(MDL_Variable_Stub&& _other) : fields((LDS::Map<std::string, LDS::Vector<std::string>>&&)_other.fields), childs((LDS::Map<std::string, MDL_Variable_Stub>&&)_other.childs) {}
+        void operator =(MDL_Variable_Stub&& _other) { fields = (LDS::Map<std::string, LDS::Vector<std::string>>&&)_other.fields; childs = (LDS::Map<std::string, MDL_Variable_Stub>&&)_other.childs; }
 	};
 
 	class MDL_Reader final
 	{
 	public:
-		typedef std::map<std::string, MDL_Variable_Stub> Stub_Map;
+        typedef LDS::Map<std::string, MDL_Variable_Stub> Stub_Map;
 
 	private:
 		Stub_Map m_stubs;
