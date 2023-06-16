@@ -81,40 +81,29 @@ namespace LV
 
 
 	template<typename T>
-	T* cast_variable(Variable_Base* _var)
-	{
-		if(_var == nullptr)
-			return nullptr;
-
-        std::string T_type = T::get_estimated_history();
-        std::string Var_type = _var->get_actual_history();
-
-		if(Var_type.size() < T_type.size())
-			return nullptr;
-
-		if(Var_type.substr(0, T_type.size()) != T_type)
-			return nullptr;
-
-		return (T*)_var;
-	}
-
-	template<typename T>
 	const T* cast_variable(const Variable_Base* _var)
 	{
 		if(_var == nullptr)
 			return nullptr;
 
-        std::string T_type = T::get_estimated_history();
-        std::string Var_type = _var->get_actual_history();
+        const std::string T_type = T::get_estimated_history();
+        const std::string& var_type = _var->get_actual_history();
 
-		if(Var_type.size() < T_type.size())
+        if(var_type.size() < T_type.size())
 			return nullptr;
 
-		if(Var_type.substr(0, T_type.size()) != T_type)
-			return nullptr;
+        for(unsigned int i=0; i<T_type.size(); ++i)
+            if(T_type[i] != var_type[i])
+                return nullptr;
 
 		return (T*)_var;
 	}
+
+    template<typename T>
+    T* cast_variable(Variable_Base* _var)
+    {
+        return (T*)cast_variable<T>((const Variable_Base*)_var);
+    }
 
 }
 
