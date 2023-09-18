@@ -1,6 +1,8 @@
 #ifndef BUILDER_STUB_H
 #define BUILDER_STUB_H
 
+#include <Stuff/Function_Wrapper.h>
+
 #include <Variable_Base.h>
 
 
@@ -11,6 +13,12 @@ namespace LV
     {
     public:
         DECLARE_VARIABLE;
+
+    private:
+        LST::Function<void(Variable_Base*)> m_extract_data_func;
+
+    public:
+        inline void set_extract_data_func(const LST::Function<void(Variable_Base*)> _func) { m_extract_data_func = _func; }
 
     protected:
         virtual LV::Variable_Base* M_construct_product() const = 0;

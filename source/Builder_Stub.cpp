@@ -18,5 +18,9 @@ LV::Variable_Base* Builder_Stub::construct() const
     result->assign_values({});
     result->on_values_assigned();
     M_init_constructed_product(result);
+
+    if(m_extract_data_func)
+        m_extract_data_func(result);
+
     return result;
 }
