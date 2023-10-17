@@ -71,10 +71,6 @@ namespace LV
 		Variable_Base();
 		virtual ~Variable_Base();
 
-	public:
-		void set_name(const std::string& _name);
-		const std::string& get_name() const;
-
 	};
 
 
