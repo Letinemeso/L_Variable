@@ -9,6 +9,7 @@
 #include <MDL_Reader.h>
 
 #ifndef VARIABLE
+#define VARIABLE
 
 	#define DECLARE_VARIABLE \
 		public: \
@@ -16,6 +17,8 @@
 			static std::string get_estimated_history(); \
 			std::string get_actual_type() const override; \
 			void assign_values(const LV::MDL_Variable_Stub& _stub) override
+
+
 
 	#define INIT_FIELDS(variable_type, parent_type) \
 		std::string variable_type::get_estimated_type() { return std::string(#variable_type); } \
@@ -25,25 +28,33 @@
 			parent_type::assign_values(_stub); \
 			m_type_history = m_type_history + "/" + std::string(#variable_type);
 
+
+
 	#define ADD_FIELD(type, field_reference) { \
             LDS::Map<std::string, LDS::Vector<std::string>>::Const_Iterator check = _stub.fields.find(#field_reference); \
             if(check.is_ok())  \
                 LV::Type_Manager::parse(#type, *check, (void*)(&field_reference)); \
 		}
 
-    #define ADD_CHILD(child_reference) \
+
+
+//    #define ADD_CHILD(child_name, child_reference) \
+//            { \
+//                LDS::Map<std::string, LV::MDL_Variable_Stub>::Const_Iterator check = _stub.childs.find(child_name); \
+//                if(check.is_ok())  \
+//                    (child_reference).assign_values(*check); \
+//            }
+
+
+
+    #define ADD_CHILD(child_name, child_ptr) \
             { \
-                LDS::Map<std::string, LV::MDL_Variable_Stub>::Const_Iterator check = _stub.childs.find(#child_reference); \
-                if(check.is_ok())  \
-                    (child_reference).assign_values(*check); \
+                Childs_Container_Type::Iterator check = m_childs.find(child_name); \
+                if(!check.is_ok())  \
+                    m_childs.insert(child_name, (LV::Variable_Base**)&(child_ptr)); \
             }
 
-    #define ADD_CHILD(child_name, child_reference) \
-            { \
-                LDS::Map<std::string, LV::MDL_Variable_Stub>::Const_Iterator check = _stub.childs.find(child_name); \
-                if(check.is_ok())  \
-                    (child_reference).assign_values(*check); \
-            }
+
 
     #define FIELDS_END }
 
@@ -55,8 +66,12 @@ namespace LV
 
 	class Variable_Base
 	{
+    public:
+        using Childs_Container_Type = LDS::Map<std::string, Variable_Base**>;
+
 	protected:
 		std::string m_type_history;
+        Childs_Container_Type m_childs;
 
 	public:
 		static std::string get_estimated_type() { return ""; };
@@ -66,6 +81,8 @@ namespace LV
 
 		virtual void assign_values(const MDL_Variable_Stub& /*_stub*/) { m_type_history = ""; }
         virtual void on_values_assigned() { };
+        void init_childs(const MDL_Variable_Stub& _stub);
+        inline const Childs_Container_Type& get_childs() const { return m_childs; }
 
 	public:
 		Variable_Base();
