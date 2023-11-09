@@ -16,25 +16,31 @@ namespace LV
         using initialization_func_type = LST::Function<void(LV::Variable_Base*)>;
 
     private:
-        struct Object_Construction_Tools
+        struct Object_Construction_Tools final
         {
             construction_func_type construction_func;
             initialization_func_type initialization_func;
         };
         using Registred_Types_Container = LDS::Map<std::string, Object_Construction_Tools>;
 
-    private:
+    public:
         class Tools_Configurator final
         {
         private:
-            Registred_Types_Container::Iterator type_stuff_iterator;
+            Object_Construction_Tools& m_type_stuff_ref;
+
+        private:
+            Tools_Configurator() = delete;
+            Tools_Configurator(const Tools_Configurator& _other) = delete;
+            Tools_Configurator(Tools_Configurator&& _other) = delete;
+            void operator=(const Tools_Configurator& _other) = delete;
+            void operator=(Tools_Configurator&& _other) = delete;
 
         private:
             friend class Object_Constructor;
+            Tools_Configurator(Object_Construction_Tools& _ref) : m_type_stuff_ref(_ref) { }
 
-            Tools_Configurator() = delete;
-
-            Tools_Configurator(const Registred_Types_Container::Iterator& _iterator) : type_stuff_iterator(_iterator) { }
+        public:
             ~Tools_Configurator() { }
 
         public:
@@ -52,7 +58,7 @@ namespace LV
 
     public:
         template<typename Variable_Base_Child_Type>
-        Tools_Configurator register_type(const std::string& _override_name);
+        Tools_Configurator register_type(const std::string& _override_name = Variable_Base_Child_Type::get_estimated_type());
 
     public:
         LV::Variable_Base* construct(const MDL_Variable_Stub& _mdl_stub) const;
@@ -77,7 +83,7 @@ namespace LV
 
         m_registred_types.insert(type_name, construction_tools);
 
-        return Tools_Configurator(m_registred_types.find(type_name));
+        return Tools_Configurator(*m_registred_types.find(type_name));
     }
 
 }

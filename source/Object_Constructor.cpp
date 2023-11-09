@@ -3,6 +3,20 @@
 using namespace LV;
 
 
+Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::override_constructor_func(construction_func_type _func)
+{
+    m_type_stuff_ref.construction_func = _func;
+    return *this;
+}
+
+Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::override_initialization_func(initialization_func_type _func)
+{
+    m_type_stuff_ref.initialization_func = _func;
+    return *this;
+}
+
+
+
 Object_Constructor::Object_Constructor()
 {
 
@@ -23,12 +37,13 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
 
     std::string type_str = (*maybe_type_field)[0];
 
-    LDS::Map<std::string, constructor_func_type>::Const_Iterator maybe_registred_type = m_registred_types.find(type_str);
+    Registred_Types_Container::Const_Iterator maybe_registred_type = m_registred_types.find(type_str);
     L_ASSERT(maybe_registred_type.is_ok());
 
-    const constructor_func_type& construction_func = *maybe_registred_type;
+    const construction_func_type& construction_func = maybe_registred_type->construction_func;
+    L_ASSERT(construction_func);
 
-    LV::Variable_Base* result = construction_func(_mdl_stub);
+    LV::Variable_Base* result = construction_func();
     result->assign_values(_mdl_stub);
 
     const LV::Variable_Base::Childs_Container_Type& results_childs = result->get_childs();
@@ -44,6 +59,11 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
     }
 
     result->on_values_assigned();
+
+    const initialization_func_type& initialization_func = maybe_registred_type->initialization_func;
+
+    if(initialization_func)
+        initialization_func(result);
 
     return result;
 }
