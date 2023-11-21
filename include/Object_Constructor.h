@@ -31,10 +31,12 @@ namespace LV
 
         private:
             Tools_Configurator() = delete;
-            Tools_Configurator(const Tools_Configurator& _other) = delete;
-            Tools_Configurator(Tools_Configurator&& _other) = delete;
             void operator=(const Tools_Configurator& _other) = delete;
             void operator=(Tools_Configurator&& _other) = delete;
+
+        public:
+            Tools_Configurator(const Tools_Configurator& _other) : m_type_stuff_ref(_other.m_type_stuff_ref) { }
+            Tools_Configurator(Tools_Configurator&& _other) : m_type_stuff_ref(_other.m_type_stuff_ref) { }
 
         private:
             friend class Object_Constructor;
@@ -83,7 +85,9 @@ namespace LV
 
         m_registred_types.insert(type_name, construction_tools);
 
-        return Tools_Configurator(*m_registred_types.find(type_name));
+        Object_Construction_Tools& construction_tools_reference = *m_registred_types.find(type_name);
+
+        return Tools_Configurator(construction_tools_reference);
     }
 
 }
