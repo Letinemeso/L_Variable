@@ -53,8 +53,9 @@ namespace LV
     private:
         void M_save_stub_to_file(std::ofstream& _file, const std::string& _name, const MDL_Variable_Stub& _stub, unsigned int _nesting_level = 0) const;
 
-		std::string M_extract_from_file(const std::string& _path);
-		void M_preprocess(std::string& _raw) const;
+        std::string M_extract_from_file(const std::string& _path) const;
+        void M_preprocess_commentaries(std::string& _raw) const;
+        void M_preprocess_includes(const std::string& _root_path, std::string& _raw) const;
 
         unsigned int M_find_symbol(const std::string& _str, unsigned int _offset, char _symbol) const;
         unsigned int M_find_symbol_from_end(const std::string& _str, int _offset, char _symbol) const;
@@ -67,7 +68,8 @@ namespace LV
 		void M_skip_past_closer(const std::string& _raw_data, unsigned int& _offset, bool _ignore_lines = false) const;
 		std::string M_extract_line(const std::string& _raw, unsigned int _offset) const;
 
-		std::string M_parse_name(const std::string& _line) const;
+        std::string M_parse_name(const std::string& _line) const;
+        bool M_comare_substrings(const std::string& _first, const std::string& _second, unsigned int _offset_1, unsigned int _offset_2, unsigned int _compare_size) const;
         MDL_Variable_Stub M_parse_stub(const std::string& _raw_data) const;
 		unsigned int M_parse_amount(const std::string& _raw_data) const;
 		LDS::Vector<std::string> M_parse_simple_data(const std::string& _raw_data) const;

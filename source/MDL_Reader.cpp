@@ -147,7 +147,7 @@ void MDL_Reader::M_save_stub_to_file(std::ofstream &_file, const std::string& _n
 }
 
 
-std::string MDL_Reader::M_extract_from_file(const std::string &_path)
+std::string MDL_Reader::M_extract_from_file(const std::string &_path) const
 {
 	std::ifstream file(_path + ".mdl", std::ifstream::binary);
 	L_ASSERT(file.is_open());
@@ -163,33 +163,104 @@ std::string MDL_Reader::M_extract_from_file(const std::string &_path)
 
 	file.close();
 
-	M_preprocess(result);
+    M_preprocess_commentaries(result);
+    M_preprocess_includes(_path, result);
 
 	return result;
 }
 
-void MDL_Reader::M_preprocess(std::string &_raw) const
+void MDL_Reader::M_preprocess_commentaries(std::string &_raw) const
 {
-	for(unsigned int i=0; i<_raw.size(); ++i)
+    bool is_in_quotes = false;
+
+    for(unsigned int i=0; i<_raw.size(); ++i)
 	{
+        if(_raw[i] == '"')
+        {
+            is_in_quotes = !is_in_quotes;
+            continue;
+        }
+
+        if(is_in_quotes)
+            continue;
+
 		if(_raw[i] != '#')
 			continue;
 
-		_raw[i] = ' ';
-		++i;
+        unsigned int closing_hash_index = i + 1;
+        for(; closing_hash_index < _raw.size(); ++closing_hash_index)
+        {
+            if(_raw[closing_hash_index] == '"')
+            {
+                is_in_quotes = !is_in_quotes;
+                continue;
+            }
 
-		for(; i < _raw.size(); ++i)
-		{
-			if(_raw[i] == '#')
-			{
-				_raw[i] = ' ';
-				break;
-			}
-			_raw[i] = ' ';
-		}
+            if(is_in_quotes)
+                continue;
 
-		L_ASSERT(i < _raw.size());
+            if(_raw[closing_hash_index] == '#')
+                break;
+        }
+
+        L_ASSERT(closing_hash_index < _raw.size());  //  commentary is not openned
+
+        _raw = _raw.substr(0, i) + _raw.substr(closing_hash_index + 1);
 	}
+}
+
+void MDL_Reader::M_preprocess_includes(const std::string& _root_path, std::string& _raw) const
+{
+    constexpr unsigned int include_mark_size = 3;
+    const std::string include_openner("<<<");
+    const std::string include_closer(">>>");
+
+    bool is_in_quotes = false;
+
+    for(unsigned int i=0; i<_raw.size() - include_mark_size; ++i)
+    {
+        if(_raw[i] == '"')
+        {
+            is_in_quotes = !is_in_quotes;
+            continue;
+        }
+
+        if(is_in_quotes)
+            continue;
+
+        if(!M_comare_substrings(_raw, include_openner, i, 0, include_mark_size))
+            continue;
+
+        unsigned int closing_hash_index = i + 1;
+        for(; closing_hash_index < _raw.size() - include_mark_size; ++closing_hash_index)
+        {
+            if(_raw[closing_hash_index] == '"')
+            {
+                is_in_quotes = !is_in_quotes;
+                continue;
+            }
+
+            if(is_in_quotes)
+                continue;
+
+            if(M_comare_substrings(_raw, include_closer, closing_hash_index, 0, include_mark_size))
+                break;
+        }
+
+        L_ASSERT(closing_hash_index < _raw.size());  //  commentary is not openned
+
+        unsigned int replace_begin = i;
+        unsigned int replace_end = closing_hash_index + include_mark_size;
+
+        std::string path = _root_path.substr(0, M_find_symbol_from_end(_root_path, (int)_root_path.size(), '/') + 1);
+        path += _raw.substr(i + include_mark_size, closing_hash_index - i - include_mark_size);
+
+        std::string raw_nested = M_extract_from_file(path);
+
+        _raw = _raw.substr(0, replace_begin) + raw_nested + _raw.substr(replace_end);
+
+        i += raw_nested.size();
+    }
 }
 
 
@@ -363,6 +434,17 @@ std::string MDL_Reader::M_parse_name(const std::string &_line) const
 	});
 
 	return _line.substr(start, end - start);
+}
+
+bool MDL_Reader::M_comare_substrings(const std::string& _first, const std::string& _second, unsigned int _offset_1, unsigned int _offset_2, unsigned int _compare_size) const
+{
+    L_ASSERT(_offset_1 + _compare_size <= _first.size());
+    L_ASSERT(_offset_2 + _compare_size <= _second.size());
+
+    for(unsigned int i = 0; i < _compare_size; ++i)
+        if(_first[i + _offset_1] != _second[i + _offset_2])
+            return false;
+    return true;
 }
 
 MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw_data) const
