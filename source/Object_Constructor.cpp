@@ -51,7 +51,9 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
     for(LV::Variable_Base::Childs_Container_Type::Const_Iterator it = results_childs.iterator(); !it.end_reached(); ++it)
     {
         auto maybe_child_stub = _mdl_stub.childs.find(it.key());
-        L_ASSERT(maybe_child_stub.is_ok());
+
+        if(!maybe_child_stub.is_ok())
+            continue;
 
         L_ASSERT(**it == nullptr);
 
