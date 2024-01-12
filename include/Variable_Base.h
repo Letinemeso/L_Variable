@@ -1,5 +1,4 @@
-#ifndef TYPE_H
-#define TYPE_H
+#pragma once
 
 #include <string>
 
@@ -16,7 +15,8 @@
             static std::string get_estimated_type();                            \
             static std::string get_estimated_history();                         \
             std::string get_actual_type() const override;                       \
-			void assign_values(const LV::MDL_Variable_Stub& _stub) override
+        protected:                                                              \
+            void M_assign_values(const LV::MDL_Variable_Stub& _stub) override
 
 
 
@@ -24,8 +24,8 @@
         std::string variable_type::get_estimated_type() { return std::string(#variable_type); }                                                     \
         std::string variable_type::get_actual_type() const { return std::string(#variable_type); }                                                  \
         std::string variable_type::get_estimated_history() { return parent_type::get_estimated_history() + "/" + std::string(#variable_type); }     \
-        void variable_type::assign_values(const LV::MDL_Variable_Stub& _stub) {                                                                     \
-            parent_type::assign_values(_stub);                                                                                                      \
+        void variable_type::M_assign_values(const LV::MDL_Variable_Stub& _stub) {                                                                     \
+            parent_type::M_assign_values(_stub);                                                                                                      \
 			m_type_history = m_type_history + "/" + std::string(#variable_type);
 
 
@@ -38,12 +38,8 @@
 
 
 
-    #define ADD_CHILD(child_name, child_ptr)                                        \
-            {                                                                       \
-                Childs_Container_Type::Iterator check = m_childs.find(child_name);  \
-                L_ASSERT(!check.is_ok());                                           \
-                m_childs.insert(child_name, (LV::Variable_Base**)&(child_ptr));     \
-            }
+    #define ADD_CHILD(child_name, child_ptr)    \
+        M_register_child(child_name, (LV::Variable_Base**)(&child_ptr));
 
 
 
@@ -58,6 +54,9 @@ namespace LV
 	class Variable_Base
 	{
     public:
+        friend class Object_Constructor;
+
+    public:
         using Childs_Container_Type = LDS::Map<std::string, Variable_Base**>;
 
 	protected:
@@ -70,9 +69,15 @@ namespace LV
 		virtual std::string get_actual_type() const { return ""; }
 		const std::string& get_actual_history() const { return m_type_history; }
 
-		virtual void assign_values(const MDL_Variable_Stub& /*_stub*/) { m_type_history = ""; }
-        virtual void on_values_assigned() { };
-        void init_childs(const MDL_Variable_Stub& _stub);
+    protected:
+        void M_register_child(const std::string& _child_name, Variable_Base** _child_ptr);
+        virtual void M_assign_values(const MDL_Variable_Stub& _stub);
+        void M_init_childs(const MDL_Variable_Stub& _stub);
+
+    public:
+        void assign_values(const MDL_Variable_Stub& _stub);
+
+    public:
         inline const Childs_Container_Type& get_childs() const { return m_childs; }
 
 	public:
@@ -80,6 +85,9 @@ namespace LV
 		virtual ~Variable_Base();
 
 	};
+
+
+
 
 
 	template<typename T>
@@ -108,6 +116,3 @@ namespace LV
     }
 
 }
-
-
-#endif // TYPE_H

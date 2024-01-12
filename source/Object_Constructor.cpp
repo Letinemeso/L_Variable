@@ -44,7 +44,7 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
     L_ASSERT(construction_func);
 
     LV::Variable_Base* result = construction_func();
-    result->assign_values(_mdl_stub);
+    result->M_assign_values(_mdl_stub);
 
     const LV::Variable_Base::Childs_Container_Type& results_childs = result->get_childs();
 
@@ -55,12 +55,10 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
         if(!maybe_child_stub.is_ok())
             continue;
 
-        L_ASSERT(**it == nullptr);
+        L_ASSERT(**it == nullptr);  //  this may be wrong. if child is not nullptr, assign_values should be called (probably)
 
         **it = construct(*maybe_child_stub);
     }
-
-    result->on_values_assigned();
 
     const initialization_func_type& initialization_func = maybe_registred_type->initialization_func;
 

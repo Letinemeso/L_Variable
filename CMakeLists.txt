@@ -5,8 +5,8 @@ project(L_Variable LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-FILE(GLOB_RECURSE LibFiles "include/*.h")
-add_custom_target(L_Variable_include SOURCES ${LibFiles})
+FILE(GLOB_RECURSE L_Variable_include "include/*.h")
+add_custom_target(_L_Variable_include SOURCES ${L_Variable_include})
 
 add_library(L_Variable STATIC
 	source/MDL_Reader.cpp
