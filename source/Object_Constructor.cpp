@@ -17,7 +17,7 @@ Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::
 
 Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::add_childs_array(const std::string& _childs_name_mask, const Childs_Map_Extraction_Func& _extraction_func)
 {
-    m_type_stuff_ref.childs_array_construction_tools_list.push_back({_childs_name_mask, _extraction_func});
+    m_type_stuff_ref.childs_array_construction_tools_list.push_back({LST::Mask(_childs_name_mask), _extraction_func});
     return *this;
 }
 
@@ -49,7 +49,7 @@ std::string Object_Constructor::M_extract_type_from_history(const std::string& _
 
 void Object_Constructor::M_construct_childs_arrays(LV::Variable_Base* _object, const Childs_Array_Construction_Tools& _tools, const MDL_Variable_Stub& _mdl_stub) const
 {
-    LST::Mask name_mask(_tools.name_mask);
+    const LST::Mask& name_mask = _tools.name_mask;
 
     Childs_Map& childs_map = _tools.childs_extraction_func(_object);
 

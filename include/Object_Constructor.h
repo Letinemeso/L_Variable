@@ -21,7 +21,7 @@ namespace LV
     private:
         struct Childs_Array_Construction_Tools final
         {
-            std::string name_mask;
+            LST::Mask name_mask;
             Childs_Map_Extraction_Func childs_extraction_func;
         };
         using Childs_Array_Construction_Tools_List = LDS::List<Childs_Array_Construction_Tools>;
