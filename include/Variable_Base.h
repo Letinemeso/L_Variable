@@ -64,10 +64,10 @@ namespace LV
         Childs_Container_Type m_childs;
 
 	public:
-		static std::string get_estimated_type() { return ""; };
-		static std::string get_estimated_history() { return ""; };
-		virtual std::string get_actual_type() const { return ""; }
-		const std::string& get_actual_history() const { return m_type_history; }
+        static std::string get_estimated_type() { return ""; };
+        static std::string get_estimated_history() { return ""; };
+        virtual std::string get_actual_type() const { return ""; }
+        inline const std::string& get_actual_history() const { return m_type_history; }
 
     protected:
         void M_register_child(const std::string& _child_name, Variable_Base** _child_ptr);

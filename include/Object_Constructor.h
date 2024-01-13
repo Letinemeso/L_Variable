@@ -1,8 +1,9 @@
-#ifndef OBJECT_CONSTRUCTOR_H
-#define OBJECT_CONSTRUCTOR_H
+#pragma once
 
+#include <Data_Structures/List.h>
 #include <Data_Structures/Map.h>
 #include <Stuff/Function_Wrapper.h>
+#include <Stuff/Mask.h>
 
 #include <Variable_Base.h>
 
@@ -12,14 +13,24 @@ namespace LV
     class Object_Constructor
     {
     public:
-        using construction_func_type = LST::Function<LV::Variable_Base*()>;
-        using initialization_func_type = LST::Function<void(LV::Variable_Base*)>;
+        using Construction_Func_Type = LST::Function<LV::Variable_Base*()>;
+        using Initialization_Func_Type = LST::Function<void(LV::Variable_Base*)>;
+        using Childs_Map = LDS::Map<std::string, LV::Variable_Base*>;
+        using Childs_Map_Extraction_Func = LST::Function<Childs_Map&(LV::Variable_Base*)>;
 
     private:
+        struct Childs_Array_Construction_Tools final
+        {
+            std::string name_mask;
+            Childs_Map_Extraction_Func childs_extraction_func;
+        };
+        using Childs_Array_Construction_Tools_List = LDS::List<Childs_Array_Construction_Tools>;
+
         struct Object_Construction_Tools final
         {
-            construction_func_type construction_func;
-            initialization_func_type initialization_func;
+            Construction_Func_Type construction_func;
+            Initialization_Func_Type initialization_func;
+            Childs_Array_Construction_Tools_List childs_array_construction_tools_list;
         };
         using Registred_Types_Container = LDS::Map<std::string, Object_Construction_Tools>;
 
@@ -46,8 +57,9 @@ namespace LV
             ~Tools_Configurator() { }
 
         public:
-            Tools_Configurator& override_constructor_func(construction_func_type _func);
-            Tools_Configurator& override_initialization_func(initialization_func_type _func);
+            Tools_Configurator& override_constructor_func(Construction_Func_Type _func);
+            Tools_Configurator& override_initialization_func(Initialization_Func_Type _func);
+            Tools_Configurator& add_childs_array(const std::string& _childs_name_mask, const Childs_Map_Extraction_Func& _extraction_func);
 
         };
 
@@ -63,7 +75,9 @@ namespace LV
         Tools_Configurator register_type(const std::string& _override_name = Variable_Base_Child_Type::get_estimated_type());
 
     private:
-        void M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history) const;
+        std::string M_extract_type_from_history(const std::string& _type_history) const;
+        void M_construct_childs_arrays(LV::Variable_Base* _object, const Childs_Array_Construction_Tools& _tools, const MDL_Variable_Stub& _mdl_stub) const;
+        void M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history, const MDL_Variable_Stub& _mdl_stub) const;
 
     public:
         LV::Variable_Base* construct(const MDL_Variable_Stub& _mdl_stub) const;
@@ -94,5 +108,3 @@ namespace LV
     }
 
 }
-
-#endif // OBJECT_CONSTRUCTOR_H

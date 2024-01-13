@@ -3,15 +3,21 @@
 using namespace LV;
 
 
-Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::override_constructor_func(construction_func_type _func)
+Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::override_constructor_func(Construction_Func_Type _func)
 {
     m_type_stuff_ref.construction_func = _func;
     return *this;
 }
 
-Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::override_initialization_func(initialization_func_type _func)
+Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::override_initialization_func(Initialization_Func_Type _func)
 {
     m_type_stuff_ref.initialization_func = _func;
+    return *this;
+}
+
+Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::add_childs_array(const std::string& _childs_name_mask, const Childs_Map_Extraction_Func& _extraction_func)
+{
+    m_type_stuff_ref.childs_array_construction_tools_list.push_back({_childs_name_mask, _extraction_func});
     return *this;
 }
 
@@ -29,11 +35,8 @@ Object_Constructor::~Object_Constructor()
 
 
 
-void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history) const
+std::string Object_Constructor::M_extract_type_from_history(const std::string& _type_history) const
 {
-    if(_type_history.size() <= 1)
-        return;
-
     unsigned int slash_index = _type_history.size() - 1;
     for(; slash_index > 0; --slash_index)
     {
@@ -41,16 +44,48 @@ void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _obj
             break;
     }
 
-    std::string type = _type_history.substr(slash_index + 1);
-    std::string remaining_history = _type_history.substr(0, slash_index);
+    return _type_history.substr(slash_index + 1);
+}
 
-    M_initialize_constructed_object(_object, remaining_history);
+void Object_Constructor::M_construct_childs_arrays(LV::Variable_Base* _object, const Childs_Array_Construction_Tools& _tools, const MDL_Variable_Stub& _mdl_stub) const
+{
+    LST::Mask name_mask(_tools.name_mask);
+
+    Childs_Map& childs_map = _tools.childs_extraction_func(_object);
+
+    for(auto mdl_childs_it = _mdl_stub.childs.iterator(); !mdl_childs_it.end_reached(); ++mdl_childs_it)
+    {
+        const std::string& child_name = mdl_childs_it.key();
+
+        if(!name_mask.compare(child_name))
+            continue;
+
+        L_ASSERT(!childs_map.find(child_name).is_ok());
+
+        LV::Variable_Base* child = construct(*mdl_childs_it);
+
+        childs_map.insert(child_name, child);
+    }
+}
+
+void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history, const MDL_Variable_Stub& _mdl_stub) const
+{
+    if(_type_history.size() <= 1)
+        return;
+
+    std::string type = M_extract_type_from_history(_type_history);
+    std::string remaining_history = _type_history.substr(0, _type_history.size() - 1 - type.size());
+
+    M_initialize_constructed_object(_object, remaining_history, _mdl_stub);
 
     Registred_Types_Container::Const_Iterator maybe_registred_type = m_registred_types.find(type);  //  maybe not the most efficient way of doing this
     if(!maybe_registred_type.is_ok())
         return;
 
-    const initialization_func_type& initialization_func = maybe_registred_type->initialization_func;
+    for(Childs_Array_Construction_Tools_List::Const_Iterator it = maybe_registred_type->childs_array_construction_tools_list.begin(); !it.end_reached(); ++it)
+        M_construct_childs_arrays(_object, *it, _mdl_stub);
+
+    const Initialization_Func_Type& initialization_func = maybe_registred_type->initialization_func;
 
     if(initialization_func)
         initialization_func(_object);
@@ -69,7 +104,7 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
     Registred_Types_Container::Const_Iterator maybe_registred_type = m_registred_types.find(type_str);
     L_ASSERT(maybe_registred_type.is_ok());
 
-    const construction_func_type& construction_func = maybe_registred_type->construction_func;
+    const Construction_Func_Type& construction_func = maybe_registred_type->construction_func;
     L_ASSERT(construction_func);
 
     LV::Variable_Base* result = construction_func();
@@ -84,12 +119,17 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
         if(!maybe_child_stub.is_ok())
             continue;
 
-        L_ASSERT(**it == nullptr);  //  this may be wrong. if child is not nullptr, assign_values should be called (probably)
-
-        **it = construct(*maybe_child_stub);
+//        L_ASSERT(**it == nullptr);  //  this may be wrong. if child is not nullptr, assign_values should be called (probably)
+        if(**it == nullptr)
+            **it = construct(*maybe_child_stub);
+        else
+            (**it)->assign_values(*maybe_child_stub);
     }
 
-    M_initialize_constructed_object(result, result->get_actual_history());
+    std::string real_object_type = M_extract_type_from_history(result->get_actual_history());
+    std::string type_history = result->get_actual_history().substr(0, result->get_actual_history().size() - 1 - real_object_type.size()) + '/' + type_str;  //  object type can be overridden
+
+    M_initialize_constructed_object(result, type_history, _mdl_stub);
 
     return result;
 }
