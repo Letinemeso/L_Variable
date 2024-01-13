@@ -29,6 +29,35 @@ Object_Constructor::~Object_Constructor()
 
 
 
+void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history) const
+{
+    if(_type_history.size() <= 1)
+        return;
+
+    unsigned int slash_index = _type_history.size() - 1;
+    for(; slash_index > 0; --slash_index)
+    {
+        if(_type_history[slash_index] == '/')
+            break;
+    }
+
+    std::string type = _type_history.substr(slash_index + 1);
+    std::string remaining_history = _type_history.substr(0, slash_index);
+
+    M_initialize_constructed_object(_object, remaining_history);
+
+    Registred_Types_Container::Const_Iterator maybe_registred_type = m_registred_types.find(type);  //  maybe not the most efficient way of doing this
+    if(!maybe_registred_type.is_ok())
+        return;
+
+    const initialization_func_type& initialization_func = maybe_registred_type->initialization_func;
+
+    if(initialization_func)
+        initialization_func(_object);
+}
+
+
+
 LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_stub) const
 {
     LDS::Map<std::string, LDS::Vector<std::string>>::Const_Iterator maybe_type_field = _mdl_stub.fields.find("type");
@@ -60,10 +89,7 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
         **it = construct(*maybe_child_stub);
     }
 
-    const initialization_func_type& initialization_func = maybe_registred_type->initialization_func;
-
-    if(initialization_func)
-        initialization_func(result);
+    M_initialize_constructed_object(result, result->get_actual_history());
 
     return result;
 }

@@ -62,6 +62,9 @@ namespace LV
         template<typename Variable_Base_Child_Type>
         Tools_Configurator register_type(const std::string& _override_name = Variable_Base_Child_Type::get_estimated_type());
 
+    private:
+        void M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history) const;
+
     public:
         LV::Variable_Base* construct(const MDL_Variable_Stub& _mdl_stub) const;
 
