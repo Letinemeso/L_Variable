@@ -64,8 +64,8 @@ namespace LV
         Childs_Container_Type m_childs;
 
 	public:
-        static std::string get_estimated_type() { return ""; };
-        static std::string get_estimated_history() { return ""; };
+        static std::string get_estimated_type() { return ""; }
+        static std::string get_estimated_history() { return ""; }
         virtual std::string get_actual_type() const { return ""; }
         inline const std::string& get_actual_history() const { return m_type_history; }
 
