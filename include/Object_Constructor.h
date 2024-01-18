@@ -98,13 +98,13 @@ namespace LV
             type_name = Variable_Base_Child_Type::get_estimated_type();
 
         L_ASSERT(type_name.size() > 0);
-        L_ASSERT(m_registred_types.find(type_name).is_ok() == false);
 
-        m_registred_types.insert(type_name, construction_tools);
+        Registred_Types_Container::Iterator maybe_registred_type = m_registred_types.find(type_name);
+        if(maybe_registred_type.is_ok())
+            return Tools_Configurator(*maybe_registred_type);
 
-        Object_Construction_Tools& construction_tools_reference = *m_registred_types.find(type_name);
-
-        return Tools_Configurator(construction_tools_reference);
+        maybe_registred_type = m_registred_types.insert_and_get_iterator(type_name, construction_tools);
+        return Tools_Configurator(*maybe_registred_type);
     }
 
 }
