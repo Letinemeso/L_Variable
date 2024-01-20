@@ -15,8 +15,12 @@ namespace LV
 
 	struct MDL_Variable_Stub
     {
-        LDS::Map<std::string, LDS::Vector<std::string>> fields;
-        LDS::Map<std::string, MDL_Variable_Stub> childs;
+        using Field_Data_Vector = LDS::Vector<std::string>;
+        using Fields_Map = LDS::Map<std::string, Field_Data_Vector>;
+        using Childs_Map = LDS::Map<std::string, MDL_Variable_Stub>;
+
+        Fields_Map fields;
+        Childs_Map childs;
 
 		MDL_Variable_Stub(){}
         MDL_Variable_Stub(const MDL_Variable_Stub& _other) : fields(_other.fields) {}

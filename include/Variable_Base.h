@@ -11,12 +11,12 @@
 #define VARIABLE
 
     #define DECLARE_VARIABLE                                                    \
+        protected:                                                              \
+            void M_assign_values(const LV::MDL_Variable_Stub& _stub) override;  \
         public:                                                                 \
             static std::string get_estimated_type();                            \
             static std::string get_estimated_history();                         \
-            std::string get_actual_type() const override;                       \
-        protected:                                                              \
-            void M_assign_values(const LV::MDL_Variable_Stub& _stub) override
+            std::string get_actual_type() const override
 
 
 
