@@ -120,10 +120,16 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
             continue;
 
 //        L_ASSERT(**it == nullptr);  //  this may be wrong. if child is not nullptr, assign_values should be called (probably)
-        if(**it == nullptr)
-            **it = construct(*maybe_child_stub);
+
+        LV::Variable_Base*& child_ptr_ref = **it;
+
+        if(child_ptr_ref == nullptr)
+            child_ptr_ref = construct(*maybe_child_stub);
         else
-            (**it)->assign_values(*maybe_child_stub);
+        {
+            child_ptr_ref->assign_values(*maybe_child_stub);
+            M_initialize_constructed_object(child_ptr_ref, child_ptr_ref->get_actual_history(), *maybe_child_stub);
+        }
     }
 
     std::string real_object_type = M_extract_type_from_history(result->get_actual_history());
