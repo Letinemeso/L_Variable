@@ -1,5 +1,4 @@
-#ifndef BUILDER_STUB_H
-#define BUILDER_STUB_H
+#pragma once
 
 #include <Stuff/Function_Wrapper.h>
 
@@ -25,11 +24,8 @@ namespace LV
         virtual void M_init_constructed_product(LV::Variable_Base* /*_product*/) const {}
 
     public:
-        virtual ~Builder_Stub();
         LV::Variable_Base* construct() const;
 
     };
 
 }
-
-#endif // BUILDER_STUB_H

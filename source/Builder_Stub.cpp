@@ -7,11 +7,6 @@ INIT_FIELDS(LV::Builder_Stub, LV::Variable_Base)
 FIELDS_END
 
 
-Builder_Stub::~Builder_Stub()
-{
-
-}
-
 LV::Variable_Base* Builder_Stub::construct() const
 {
     LV::Variable_Base* result = M_construct_product();
