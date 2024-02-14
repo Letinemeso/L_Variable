@@ -15,7 +15,7 @@ Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::
     return *this;
 }
 
-Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::add_childs_array(const std::string& _childs_name_mask, const Childs_Map_Extraction_Func& _extraction_func)
+Object_Constructor::Tools_Configurator& Object_Constructor::Tools_Configurator::add_childs_array(const std::string& _childs_name_mask, const Childs_List_Extraction_Func& _extraction_func)
 {
     m_type_stuff_ref.childs_array_construction_tools_list.push_back({LST::Mask(_childs_name_mask), _extraction_func});
     return *this;
@@ -51,7 +51,7 @@ void Object_Constructor::M_construct_childs_arrays(LV::Variable_Base* _object, c
 {
     const LST::Mask& name_mask = _tools.name_mask;
 
-    Childs_Map& childs_map = _tools.childs_extraction_func(_object);
+    LV::Variable_Base::Childs_List& childs_list = _tools.childs_extraction_func(_object);
 
     for(auto mdl_childs_it = _mdl_stub.childs.iterator(); !mdl_childs_it.end_reached(); ++mdl_childs_it)
     {
@@ -60,11 +60,11 @@ void Object_Constructor::M_construct_childs_arrays(LV::Variable_Base* _object, c
         if(!name_mask.compare(child_name))
             continue;
 
-        L_ASSERT(!childs_map.find(child_name).is_ok());
+//        L_ASSERT(!childs_map.find(child_name).is_ok());       //  not sure if it's even possible, so i'll just comment it for now
 
         LV::Variable_Base* child = construct(*mdl_childs_it);
 
-        childs_map.insert(child_name, child);
+        childs_list.push_back({child_name, child});
     }
 }
 

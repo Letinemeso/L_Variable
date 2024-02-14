@@ -15,14 +15,13 @@ namespace LV
     public:
         using Construction_Func_Type = LST::Function<LV::Variable_Base*()>;
         using Initialization_Func_Type = LST::Function<void(LV::Variable_Base*)>;
-        using Childs_Map = LDS::Map<std::string, LV::Variable_Base*>;
-        using Childs_Map_Extraction_Func = LST::Function<Childs_Map&(LV::Variable_Base*)>;
+        using Childs_List_Extraction_Func = LST::Function<LV::Variable_Base::Childs_List&(LV::Variable_Base*)>;
 
     private:
         struct Childs_Array_Construction_Tools final
         {
             LST::Mask name_mask;
-            Childs_Map_Extraction_Func childs_extraction_func;
+            Childs_List_Extraction_Func childs_extraction_func;
         };
         using Childs_Array_Construction_Tools_List = LDS::List<Childs_Array_Construction_Tools>;
 
@@ -59,7 +58,7 @@ namespace LV
         public:
             Tools_Configurator& override_constructor_func(Construction_Func_Type _func);
             Tools_Configurator& override_initialization_func(Initialization_Func_Type _func);
-            Tools_Configurator& add_childs_array(const std::string& _childs_name_mask, const Childs_Map_Extraction_Func& _extraction_func);
+            Tools_Configurator& add_childs_array(const std::string& _childs_name_mask, const Childs_List_Extraction_Func& _extraction_func);
 
         };
 

@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <Data_Structures/List.h>
 #include <Data_Structures/Map.h>
 
 #include <Type_Manager.h>
@@ -58,6 +59,14 @@ namespace LV
 
     public:
         using Childs_Container_Type = LDS::Map<std::string, Variable_Base**>;
+
+    public:
+        struct Child_Data
+        {
+            std::string name;
+            LV::Variable_Base* child_ptr = nullptr;
+        };
+        using Childs_List = LDS::List<Child_Data>;
 
 	protected:
 		std::string m_type_history;
