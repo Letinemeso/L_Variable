@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include <Data_Structures/Vector.h>
+#include <Data_Structures/List.h>
 #include <Data_Structures/Map.h>
 
 #include <L_Debug/L_Debug.h>
@@ -18,14 +19,16 @@ namespace LV
         using Field_Data_Vector = LDS::Vector<std::string>;
         using Fields_Map = LDS::Map<std::string, Field_Data_Vector>;
         using Childs_Map = LDS::Map<std::string, MDL_Variable_Stub>;
+        using Child_Names_Order_List = LDS::List<std::string>;
 
         Fields_Map fields;
         Childs_Map childs;
+        Child_Names_Order_List child_names_order;
 
 		MDL_Variable_Stub(){}
-        MDL_Variable_Stub(const MDL_Variable_Stub& _other) : fields(_other.fields) {}
-        MDL_Variable_Stub(MDL_Variable_Stub&& _other) : fields((LDS::Map<std::string, LDS::Vector<std::string>>&&)_other.fields), childs((LDS::Map<std::string, MDL_Variable_Stub>&&)_other.childs) {}
-        void operator =(MDL_Variable_Stub&& _other) { fields = (LDS::Map<std::string, LDS::Vector<std::string>>&&)_other.fields; childs = (LDS::Map<std::string, MDL_Variable_Stub>&&)_other.childs; }
+        MDL_Variable_Stub(const MDL_Variable_Stub& _other) : fields(_other.fields), childs(_other.childs), child_names_order(_other.child_names_order) {}
+        MDL_Variable_Stub(MDL_Variable_Stub&& _other) : fields((Fields_Map&&)_other.fields), childs((Childs_Map&&)_other.childs), child_names_order(_other.child_names_order) {}
+        void operator =(MDL_Variable_Stub&& _other) { fields = (Fields_Map&&)_other.fields; childs = (Childs_Map&&)_other.childs; child_names_order = (Child_Names_Order_List&&)_other.child_names_order; }
 	};
 
 	class MDL_Reader final
@@ -73,7 +76,7 @@ namespace LV
 		std::string M_extract_line(const std::string& _raw, unsigned int _offset) const;
 
         std::string M_parse_name(const std::string& _line) const;
-        bool M_comare_substrings(const std::string& _first, const std::string& _second, unsigned int _offset_1, unsigned int _offset_2, unsigned int _compare_size) const;
+        bool M_compare_substrings(const std::string& _first, const std::string& _second, unsigned int _offset_1, unsigned int _offset_2, unsigned int _compare_size) const;
         MDL_Variable_Stub M_parse_stub(const std::string& _raw_data) const;
 		unsigned int M_parse_amount(const std::string& _raw_data) const;
 		LDS::Vector<std::string> M_parse_simple_data(const std::string& _raw_data) const;

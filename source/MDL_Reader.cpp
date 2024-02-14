@@ -228,7 +228,7 @@ void MDL_Reader::M_preprocess_includes(const std::string& _root_path, std::strin
         if(is_in_quotes)
             continue;
 
-        if(!M_comare_substrings(_raw, include_openner, i, 0, include_mark_size))
+        if(!M_compare_substrings(_raw, include_openner, i, 0, include_mark_size))
             continue;
 
         unsigned int closing_hash_index = i + 1;
@@ -243,7 +243,7 @@ void MDL_Reader::M_preprocess_includes(const std::string& _root_path, std::strin
             if(is_in_quotes)
                 continue;
 
-            if(M_comare_substrings(_raw, include_closer, closing_hash_index, 0, include_mark_size))
+            if(M_compare_substrings(_raw, include_closer, closing_hash_index, 0, include_mark_size))
                 break;
         }
 
@@ -436,7 +436,7 @@ std::string MDL_Reader::M_parse_name(const std::string &_line) const
 	return _line.substr(start, end - start);
 }
 
-bool MDL_Reader::M_comare_substrings(const std::string& _first, const std::string& _second, unsigned int _offset_1, unsigned int _offset_2, unsigned int _compare_size) const
+bool MDL_Reader::M_compare_substrings(const std::string& _first, const std::string& _second, unsigned int _offset_1, unsigned int _offset_2, unsigned int _compare_size) const
 {
     L_ASSERT(_offset_1 + _compare_size <= _first.size());
     L_ASSERT(_offset_2 + _compare_size <= _second.size());
@@ -473,6 +473,7 @@ MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw_data) const
             std::string raw_child_data = M_extract_variable_data(_raw_data, offset);
             MDL_Variable_Stub child = M_parse_stub(raw_child_data);
 
+            result.child_names_order.push_back(name);
             result.childs.insert((std::string&&)name, (MDL_Variable_Stub&&)child);
         }
         else

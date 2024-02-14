@@ -53,16 +53,17 @@ void Object_Constructor::M_construct_childs_arrays(LV::Variable_Base* _object, c
 
     LV::Variable_Base::Childs_List& childs_list = _tools.childs_extraction_func(_object);
 
-    for(auto mdl_childs_it = _mdl_stub.childs.iterator(); !mdl_childs_it.end_reached(); ++mdl_childs_it)
+    for(LV::MDL_Variable_Stub::Child_Names_Order_List::Const_Iterator mdl_child_names_it = _mdl_stub.child_names_order.begin(); !mdl_child_names_it.end_reached(); ++mdl_child_names_it)
     {
-        const std::string& child_name = mdl_childs_it.key();
+        const std::string& child_name = *mdl_child_names_it;
 
         if(!name_mask.compare(child_name))
             continue;
 
-//        L_ASSERT(!childs_map.find(child_name).is_ok());       //  not sure if it's even possible, so i'll just comment it for now
+        LV::MDL_Variable_Stub::Childs_Map::Const_Iterator child_it = _mdl_stub.childs.find(child_name);
+        L_ASSERT(child_it.is_ok());     //  just in case
 
-        LV::Variable_Base* child = construct(*mdl_childs_it);
+        LV::Variable_Base* child = construct(*child_it);
 
         childs_list.push_back({child_name, child});
     }
