@@ -11,7 +11,7 @@ namespace LV
     class Builder_Stub : public LV::Variable_Base
     {
     public:
-        DECLARE_VARIABLE;
+        INIT_VARIABLE(LV::Builder_Stub, LV::Variable_Base)
 
     private:
         LST::Function<void(Variable_Base*)> m_extract_data_func;
