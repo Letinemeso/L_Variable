@@ -95,9 +95,9 @@ namespace LV
         using Childs_Lists = LDS::List<Childs_List_Data>;
 
 	public:
-        static std::string get_estimated_type() { return ""; }
-        static std::string get_estimated_history() { return ""; }
-        virtual std::string get_actual_type() const { return ""; }
+        static std::string get_estimated_type() { return "/LV::Variable_Base"; }
+        static std::string get_estimated_history() { return "/LV::Variable_Base"; }
+        virtual std::string get_actual_type() const { return "/LV::Variable_Base"; }
         virtual std::string get_actual_history() const { return "/LV::Variable_Base"; }
 
         virtual Childs_Container_Type get_childs() { return {}; }
@@ -130,7 +130,7 @@ namespace LV
 			return nullptr;
 
         const std::string T_type = T::get_estimated_history();
-        const std::string& var_type = _var->get_actual_history();
+        const std::string var_type = _var->get_actual_history();
 
         if(var_type.size() < T_type.size())
 			return nullptr;
