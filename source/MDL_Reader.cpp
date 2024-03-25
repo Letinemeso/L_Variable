@@ -468,7 +468,7 @@ MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw_data) const
             name = M_parse_name(name);
 
             L_ASSERT(name.size() > 0);
-            L_ASSERT(!result.fields.find(name).is_ok());
+            L_ASSERT(!result.childs.find(name).is_ok());
 
             std::string raw_child_data = M_extract_variable_data(_raw_data, offset);
             MDL_Variable_Stub child = M_parse_stub(raw_child_data);
@@ -480,7 +480,13 @@ MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw_data) const
         {
             std::string simple_data_raw_str = M_extract_variable_data(_raw_data, offset);
             LDS::Vector<std::string> values = M_parse_simple_data(simple_data_raw_str);
-            result.fields.insert(name, (LDS::Vector<std::string>&&)values);
+
+            MDL_Variable_Stub::Fields_Map::Iterator maybe_field_it = result.fields.find(name);
+
+            if(maybe_field_it.is_ok())
+                *maybe_field_it = (LDS::Vector<std::string>&&)values;
+            else
+                result.fields.insert(name, (LDS::Vector<std::string>&&)values);
         }
 	}
 
@@ -524,91 +530,24 @@ LDS::Vector<std::string> MDL_Reader::M_parse_simple_data(const std::string &_raw
 		offset = end + 1;
 	}
 
-	L_DEBUG_FUNC_NOARG([&]()	//	check if line(s) with data contains nothing but data
-	{
-		std::string data_check = _raw_data;
-		unsigned int offset_check = 0;
-		for(unsigned int i=0; i<amount; ++i)
-		{
-			offset_check = M_find_symbol(data_check, offset_check, '\"') + 1;
-			unsigned int end = M_find_symbol(data_check, offset_check, '\"');
+    L_DEBUG_FUNC_NOARG([&]()
+    {
+        bool quotes_openned = false;
 
-			std::string str_value;
-			if(end > offset_check)
-			{
-				for(unsigned int j=offset_check - 1; j<end + 1; ++j)
-					data_check[j] = ' ';
-			}
+        for(unsigned int i=0; i<_raw_data.size(); ++i)
+        {
+            if(_raw_data[i] == '"')
+            {
+                quotes_openned = !quotes_openned;
+                continue;
+            }
 
-			offset_check = end + 1;
-		}
+            if(quotes_openned)
+                continue;
 
-		for(unsigned int i=0; i<data_check.size(); ++i)
-			L_ASSERT(data_check[i] == ' ' || data_check[i] == '\t' || data_check[i] == '\n' || data_check[i] == '\r');
-	});
+            L_ASSERT(_raw_data[i] == ' ' || _raw_data[i] == '\t' || _raw_data[i] == '\n' || _raw_data[i] == '\r');
+        }
+    });
 
 	return result;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
