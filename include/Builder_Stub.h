@@ -13,8 +13,13 @@
         using Constructed_Type = Type_To_Construct;     \
         LV::Variable_Base* M_construct_product() const override;    \
         void M_init_constructed_product(LV::Variable_Base* _product) const override;    \
+    public: \
+        static inline Constructed_Type* cast_product(LV::Variable_Base* _ptr)  \
+        {   \
+            L_ASSERT(LV::cast_variable<Constructed_Type>(_ptr));    \
+            return (Constructed_Type*)_ptr; \
+        }   \
     public:
-
 
     #define BUILDER_STUB_CONSTRUCTION_FUNC(Stub_Type)  LV::Variable_Base* Stub_Type::M_construct_product() const
 
