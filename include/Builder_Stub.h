@@ -21,9 +21,11 @@
         }   \
     public:
 
-    #define BUILDER_STUB_CONSTRUCTION_FUNC(Stub_Type)  LV::Variable_Base* Stub_Type::M_construct_product() const
+    #define BUILDER_STUB_CONSTRUCTION_FUNC(Stub_Type) LV::Variable_Base* Stub_Type::M_construct_product() const
 
     #define BUILDER_STUB_CONSTRUCTION_FUNC_DEFAULT_IMPL { return new Constructed_Type; }
+
+    #define BUILDER_STUB_DEFAULT_CONSTRUCTION_FUNC(Stub_Type) BUILDER_STUB_CONSTRUCTION_FUNC(Stub_Type) BUILDER_STUB_CONSTRUCTION_FUNC_DEFAULT_IMPL
 
     #define BUILDER_STUB_CONSTRUCTION_FUNC_CUSTOM_IMPL(RETURN_VALUE) { return RETURN_VALUE; }
 
