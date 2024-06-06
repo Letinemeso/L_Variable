@@ -14,6 +14,33 @@ Variable_Base::~Variable_Base()
 }
 
 
+
+const std::string& Variable_Base::get_estimated_type()
+{
+    if(m_type.size() == 0)
+        m_type = "LV::Variable_Base";
+    return m_type;
+}
+
+const std::string& Variable_Base::get_estimated_history()
+{
+    if(m_history.size() == 0)
+        m_history = "/LV::Variable_Base";
+    return m_history;
+}
+
+const std::string& Variable_Base::get_actual_type() const
+{
+    return Variable_Base::get_estimated_type();
+}
+
+const std::string& Variable_Base::get_actual_history() const
+{
+    return Variable_Base::get_estimated_type();
+}
+
+
+
 void Variable_Base::M_register_child(Childs_Container_Type& _container, const std::string& _child_name, Variable_Base** _child_ptr)
 {
     Childs_Container_Type::Iterator check = _container.find(_child_name);

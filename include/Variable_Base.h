@@ -12,15 +12,30 @@
 #ifndef VARIABLE
 #define VARIABLE
 
-    #define INIT_VARIABLE(variable_type, parent_type)                                                                            \
+    #define INIT_VARIABLE(variable_type, parent_type)   \
+        private:    \
+            static inline std::string m_type;   \
+            static inline std::string m_history;   \
         private:    \
             using Current_Type = variable_type; \
             using Parent_Type = parent_type;    \
-        public:                                                                                                                     \
-            static std::string get_estimated_type() { return std::string(#variable_type); }                                                 \
-            static std::string get_estimated_history() { return parent_type::get_estimated_history() + "/" + get_estimated_type(); } \
-            std::string get_actual_type() const override { return get_estimated_type(); }                                     \
-            std::string get_actual_history() const override { return get_estimated_history(); }
+        public: \
+            static const std::string& get_estimated_type() \
+            {   \
+                if(variable_type::m_type.size() == 0)   \
+                    variable_type::m_type = #variable_type; \
+                return variable_type::m_type; \
+            }   \
+            \
+            static const std::string& get_estimated_history()  \
+            {   \
+                if(variable_type::m_history.size() == 0)   \
+                    variable_type::m_history = parent_type::get_estimated_history() + "/" + #variable_type; \
+                return variable_type::m_history;   \
+            }   \
+            \
+            const std::string& get_actual_type() const override { return variable_type::get_estimated_type(); }    \
+            const std::string& get_actual_history() const override { return variable_type::get_estimated_history(); }
 
 
     #define INIT_FIELDS                                                                                               \
@@ -94,11 +109,15 @@ namespace LV
         };
         using Childs_Lists = LDS::List<Childs_List_Data>;
 
+    private:
+        static inline std::string m_type;
+        static inline std::string m_history;
+
 	public:
-        static std::string get_estimated_type() { return "/LV::Variable_Base"; }
-        static std::string get_estimated_history() { return "/LV::Variable_Base"; }
-        virtual std::string get_actual_type() const { return "/LV::Variable_Base"; }
-        virtual std::string get_actual_history() const { return "/LV::Variable_Base"; }
+        static const std::string& get_estimated_type();
+        static const std::string& get_estimated_history();
+        virtual const std::string& get_actual_type() const;
+        virtual const std::string& get_actual_history() const;
 
         virtual Childs_Container_Type get_childs() { return {}; }
         virtual Childs_Lists get_childs_lists() { return {}; }
@@ -129,8 +148,8 @@ namespace LV
 		if(_var == nullptr)
 			return nullptr;
 
-        const std::string T_type = T::get_estimated_history();
-        const std::string var_type = _var->get_actual_history();
+        const std::string& T_type = T::get_estimated_history();
+        const std::string& var_type = _var->get_actual_history();
 
         if(var_type.size() < T_type.size())
 			return nullptr;
