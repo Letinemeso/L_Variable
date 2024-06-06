@@ -162,7 +162,7 @@ namespace LV
 	}
 
     template<typename T>
-    T* cast_variable(Variable_Base* _var)
+    inline T* cast_variable(Variable_Base* _var)
     {
         return (T*)cast_variable<T>((const Variable_Base*)_var);
     }
