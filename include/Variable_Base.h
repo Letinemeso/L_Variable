@@ -154,9 +154,11 @@ namespace LV
         if(var_type.size() < T_type.size())
 			return nullptr;
 
-        for(unsigned int i=0; i<T_type.size(); ++i)
+        for(int i = T_type.size() - 1; i >= 0; --i)
+        {
             if(T_type[i] != var_type[i])
                 return nullptr;
+        }
 
 		return (T*)_var;
 	}
