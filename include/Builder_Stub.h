@@ -19,7 +19,7 @@
             L_ASSERT(LV::cast_variable<Constructed_Type>(_ptr));                        \
             return (Constructed_Type*)_ptr;                                             \
         }                                                                               \
-        static inline Constructed_Type* construct_from(LV::Builder_Stub* _stub)         \
+        static inline Constructed_Type* construct_from(const LV::Builder_Stub* _stub)   \
         {                                                                               \
             return cast_product(_stub->construct());                                    \
         }                                                                               \

@@ -69,6 +69,15 @@ void Variable_Base::M_init_childs(const MDL_Variable_Stub& _stub)
 
 
 
+void Variable_Base::clear_childs_list(Childs_List& _list)
+{
+    for(Childs_List::Iterator it = _list.begin(); !it.end_reached(); ++it)
+        delete it->child_ptr;
+    _list.clear();
+}
+
+
+
 void Variable_Base::assign_values(const MDL_Variable_Stub& _stub)
 {
     M_assign_values(_stub);

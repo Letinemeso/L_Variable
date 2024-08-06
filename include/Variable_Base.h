@@ -129,6 +129,9 @@ namespace LV
         virtual void M_assign_values(const MDL_Variable_Stub& _stub) {  }
         void M_init_childs(const MDL_Variable_Stub& _stub);
 
+    protected:
+        void clear_childs_list(Childs_List& _list);
+
     public:
         void assign_values(const MDL_Variable_Stub& _stub);
 
