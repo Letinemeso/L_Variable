@@ -49,6 +49,13 @@
                     LV::Type_Manager::parse(#type, *check, (void*)(&field_reference));                                          \
             }
 
+    #define ADD_FIELD_RENAMED(type, field_name, field_reference)                                                                                \
+    {                                                                                                                   \
+            LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(field_name);    \
+            if(check.is_ok())                                                                                               \
+            LV::Type_Manager::parse(#type, *check, (void*)(&field_reference));                                          \
+    }
+
     #define FIELDS_END \
             }
 
