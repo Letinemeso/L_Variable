@@ -86,6 +86,11 @@
             }
 
 
+    #define OVERRIDE_ON_VALUES_ASSIGNED void M_on_values_assigned() override;
+
+    #define ON_VALUES_ASSIGNED_IMPLEMENTATION(type) void type::M_on_values_assigned()
+
+
 #endif
 
 
@@ -135,6 +140,7 @@ namespace LV
     protected:
         virtual void M_assign_values(const MDL_Variable_Stub& _stub) {  }
         void M_init_childs(const MDL_Variable_Stub& _stub);
+        virtual void M_on_values_assigned() { }
 
     protected:
         void clear_childs_list(Childs_List& _list);

@@ -81,6 +81,8 @@ void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _obj
 
     if(initialization_func)
         initialization_func(_object);
+
+    _object->M_on_values_assigned();
 }
 
 

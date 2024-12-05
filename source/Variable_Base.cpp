@@ -82,4 +82,5 @@ void Variable_Base::assign_values(const MDL_Variable_Stub& _stub)
 {
     M_assign_values(_stub);
     M_init_childs(_stub);
+    M_on_values_assigned();
 }
