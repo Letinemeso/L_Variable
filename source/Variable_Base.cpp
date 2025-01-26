@@ -54,13 +54,13 @@ void Variable_Base::M_init_childs(const MDL_Variable_Stub& _stub)
 {
     Childs_Container_Type childs = get_childs();
 
-    for(LDS::Map<std::string, Variable_Base**>::Iterator it = childs.iterator(); !it.end_reached(); ++it)
+    for(Childs_Container_Type::Iterator it = childs.iterator(); !it.end_reached(); ++it)
     {
         L_ASSERT(*(*it) != nullptr);
 
         const std::string& name = it.key();
 
-        LDS::Map<std::string, LV::MDL_Variable_Stub>::Const_Iterator maybe_child_stub = _stub.childs.find(name);
+        MDL_Variable_Stub::Childs_Map::Const_Iterator maybe_child_stub = _stub.childs.find(name);
         L_ASSERT(maybe_child_stub.is_ok());
 
         (**it)->assign_values(*maybe_child_stub);
