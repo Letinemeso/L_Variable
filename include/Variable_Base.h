@@ -3,6 +3,7 @@
 #include <string>
 
 #include <Stuff/Mask.h>
+#include <Stuff/Function_Wrapper.h>
 #include <Data_Structures/List.h>
 #include <Data_Structures/Map.h>
 
@@ -39,24 +40,41 @@
 
 
     #define INIT_FIELDS                                                                                               \
-        void M_assign_values(const LV::MDL_Variable_Stub& _stub) override {                                           \
-            Parent_Type::M_assign_values(_stub);
+        LV::Variable_Base::Fields_Data_List get_fields() override {                                           \
+            LV::Variable_Base::Fields_Data_List fields_result = Parent_Type::get_fields();
 
-    #define ADD_FIELD(type, field_reference)                                                                                \
-            {                                                                                                                   \
-                LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(#field_reference);    \
-                if(check.is_ok())                                                                                               \
-                    LV::Type_Manager::parse(#type, *check, (void*)(&field_reference));                                          \
+    #define ADD_FIELD(field_type, field_reference) \
+            { \
+                LV::Variable_Base::Field_Data field_data; \
+                field_data.name = #field_reference; \
+                field_data.type_name = #field_type; \
+                void* field_ptr = &field_reference; \
+                field_data.init_func = [field_ptr](const LV::MDL_Variable_Stub& _stub) \
+                { \
+                    LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(#field_reference); \
+                    if(check.is_ok()) \
+                        LV::Type_Manager::parse(#field_type, *check, field_ptr); \
+                }; \
+                fields_result.push_back(field_data); \
             }
 
-    #define ADD_FIELD_RENAMED(type, field_name, field_reference)                                                                                \
-    {                                                                                                                   \
-            LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(field_name);    \
-            if(check.is_ok())                                                                                               \
-            LV::Type_Manager::parse(#type, *check, (void*)(&field_reference));                                          \
-    }
+    #define ADD_FIELD_RENAMED(field_type, field_name, field_reference) \
+            { \
+                    LV::Variable_Base::Field_Data field_data; \
+                    field_data.name = field_name; \
+                    field_data.type_name = #field_type; \
+                    void* field_ptr = &field_reference; \
+                    field_data.init_func = [field_ptr](const LV::MDL_Variable_Stub& _stub) \
+                    { \
+                            LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(field_name); \
+                            if(check.is_ok()) \
+                            LV::Type_Manager::parse(#field_type, *check, field_ptr); \
+                    }; \
+                    fields_result.push_back(field_data); \
+            }
 
     #define FIELDS_END \
+                return fields_result; \
             }
 
 
@@ -104,8 +122,18 @@ namespace LV
 
     public:
         using Childs_Container_Type = LDS::Map<std::string, Variable_Base**>;
+        using Init_Field_Func = LST::Function<void(const MDL_Variable_Stub&)>;
+        // using Serialize_Field_Func = LST::Function<std::string()>;
 
     public:
+        struct Field_Data
+        {
+            std::string name;
+            std::string type_name;
+            Init_Field_Func init_func;
+        };
+        using Fields_Data_List = LDS::List<Field_Data>;
+
         struct Child_Data
         {
             std::string name;
@@ -131,6 +159,7 @@ namespace LV
         virtual const std::string& get_actual_type() const;
         virtual const std::string& get_actual_history() const;
 
+        virtual Fields_Data_List get_fields() { return {}; }
         virtual Childs_Container_Type get_childs() { return {}; }
         virtual Childs_Lists get_childs_lists() { return {}; }
 
@@ -138,7 +167,7 @@ namespace LV
         void M_register_child(Childs_Container_Type& _container, const std::string& _child_name, Variable_Base** _child_ptr);
 
     protected:
-        virtual void M_assign_values(const MDL_Variable_Stub& _stub) {  }
+        void M_assign_values(const MDL_Variable_Stub& _stub);
         void M_init_childs(const MDL_Variable_Stub& _stub);
         virtual void M_on_values_assigned() { }
 

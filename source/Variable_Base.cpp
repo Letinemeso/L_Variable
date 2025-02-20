@@ -50,6 +50,16 @@ void Variable_Base::M_register_child(Childs_Container_Type& _container, const st
 
 
 
+void Variable_Base::M_assign_values(const MDL_Variable_Stub& _stub)
+{
+    Fields_Data_List fields = get_fields();
+    for(Fields_Data_List::Iterator it = fields.begin(); !it.end_reached(); ++it)
+    {
+        const Field_Data& field_data = *it;
+        field_data.init_func(_stub);
+    }
+}
+
 void Variable_Base::M_init_childs(const MDL_Variable_Stub& _stub)
 {
     Childs_Container_Type childs = get_childs();
