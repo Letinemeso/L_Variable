@@ -1,5 +1,4 @@
-#ifndef TYPE_MANAGER_H
-#define TYPE_MANAGER_H
+#pragma once
 
 #include <string>
 
@@ -13,25 +12,26 @@ namespace LV
 
 	struct Type_Utility
 	{
-		typedef bool(*validation_func_t)(const std::string& _valuea_as_string);
-		typedef void(*parse_func_t)(void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string);
+        typedef bool(*Validation_Function)(const std::string& _values_as_string);
+        typedef void(*Parse_Function)(void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string);
 
-		validation_func_t validation_func = nullptr;
-		parse_func_t parse_func = nullptr;
+        Validation_Function validation_func = nullptr;
+        Parse_Function parse_func = nullptr;
 
         Type_Utility() { }
-		Type_Utility(validation_func_t _validation_func, parse_func_t _parse_func)
+        Type_Utility(Validation_Function _validation_func, Parse_Function _parse_func)
 			: validation_func(_validation_func), parse_func(_parse_func) { }
 	};
 
 	class Type_Manager final
 	{
 	private:
-        typedef LDS::Map<std::string, Type_Utility> regtypes_t;
-        static LDS::Map<std::string, Type_Utility> m_registred_types;
+        typedef LDS::Map<std::string, Type_Utility> Registred_Types_Map;
+        static Registred_Types_Map m_registred_types;
 
 	public:
-		static void register_type(const std::string& _type_name, const Type_Utility& _utility);
+        static void register_basic_types();
+        static void register_type(const std::string& _type_name, const Type_Utility& _utility);
 
 	public:
 		static bool validate(const std::string& _type_name, const std::string& _value_as_string);
@@ -45,5 +45,3 @@ namespace LV
 	};
 
 }
-
-#endif // TYPE_MANAGER_H
