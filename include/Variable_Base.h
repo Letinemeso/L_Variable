@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 
 #include <Stuff/Mask.h>
 #include <Stuff/Function_Wrapper.h>
@@ -211,11 +212,8 @@ namespace LV
         if(var_type.size() < T_type.size())
 			return nullptr;
 
-        for(int i = T_type.size() - 1; i >= 0; --i)
-        {
-            if(T_type[i] != var_type[i])
-                return nullptr;
-        }
+        if(std::memcmp(T_type.data(), var_type.data(), T_type.size()) != 0)
+            return nullptr;
 
 		return (T*)_var;
 	}
