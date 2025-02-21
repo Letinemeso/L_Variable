@@ -312,5 +312,5 @@ LDS::Vector<std::string> Type_Manager::serialize(const std::string& _type_name, 
     L_ASSERT(utility_it.is_ok());
 
     const Type_Utility& utility = *utility_it;
-    utility.serialize_func(_variable);
+    return utility.serialize_func(_variable);
 }

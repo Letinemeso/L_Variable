@@ -53,6 +53,10 @@
                     if(check.is_ok()) \
                         LV::Type_Manager::parse(#field_type, *check, field_ptr); \
                 }; \
+                field_data.serialization_func = [field_ptr]() \
+                { \
+                    return LV::Type_Manager::serialize(#field_type, field_ptr); \
+                }; \
                 fields_result.push_back(field_data); \
             }
 
@@ -64,9 +68,13 @@
                     void* field_ptr = &field_reference; \
                     field_data.init_func = [field_ptr](const LV::MDL_Variable_Stub& _stub) \
                     { \
-                            LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(field_name); \
-                            if(check.is_ok()) \
-                                LV::Type_Manager::parse(#field_type, *check, field_ptr); \
+                        LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(field_name); \
+                        if(check.is_ok()) \
+                            LV::Type_Manager::parse(#field_type, *check, field_ptr); \
+                    }; \
+                    field_data.serialization_func = [field_ptr]() \
+                    { \
+                        return LV::Type_Manager::serialize(#field_type, field_ptr); \
                     }; \
                     fields_result.push_back(field_data); \
             }
@@ -121,7 +129,7 @@ namespace LV
     public:
         using Childs_Container_Type = LDS::Map<std::string, Variable_Base**>;
         using Init_Field_Func = LST::Function<void(const MDL_Variable_Stub&)>;
-        // using Serialize_Field_Func = LST::Function<std::string()>;
+        using Serialize_Field_Func = LST::Function<LDS::Vector<std::string>()>;
 
     public:
         struct Field_Data
@@ -129,6 +137,7 @@ namespace LV
             std::string name;
             std::string type_name;
             Init_Field_Func init_func;
+            Serialize_Field_Func serialization_func;
         };
         using Fields_Data_List = LDS::List<Field_Data>;
 
@@ -169,11 +178,16 @@ namespace LV
         void M_init_childs(const MDL_Variable_Stub& _stub);
         virtual void M_on_values_assigned() { }
 
+        void M_pack_fields(MDL_Variable_Stub& _stub);
+        void M_pack_childs(MDL_Variable_Stub& _stub);
+        void M_pack_childs_lists(MDL_Variable_Stub& _stub);
+
     protected:
         void clear_childs_list(Childs_List& _list);
 
     public:
         void assign_values(const MDL_Variable_Stub& _stub);
+        MDL_Variable_Stub pack();
 
 	public:
 		Variable_Base();
