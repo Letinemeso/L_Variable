@@ -20,7 +20,13 @@ void Type_Manager::register_basic_types()
                                          return false;
                                  return true;
                              },
-                             [](void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string) { *((int*)_variable_vptr) = std::stoi(_values_as_string[0]); }
+                             [](void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string) { *((int*)_variable_vptr) = std::stoi(_values_as_string[0]); },
+                             [](void* _variable_vptr)
+                             {
+                                 LDS::Vector<std::string> result;
+                                 result.push(std::to_string(*((int*)_variable_vptr)));
+                                 return result;
+                             }
                          });
     register_type("unsigned int", {
                                       [](const std::string& _val)
@@ -30,7 +36,13 @@ void Type_Manager::register_basic_types()
                                                   return false;
                                           return true;
                                       },
-                                      [](void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string) { *((int*)_variable_vptr) = std::stoi(_values_as_string[0]); }
+                                      [](void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string) { *((int*)_variable_vptr) = std::stoi(_values_as_string[0]); },
+                                      [](void* _variable_vptr)
+                                      {
+                                          LDS::Vector<std::string> result;
+                                          result.push(std::to_string(*((unsigned int*)_variable_vptr)));
+                                          return result;
+                                      }
                                   });
     register_type("LDS::Vector<unsigned int>", {
                                                    [](const std::string& _val)
@@ -49,6 +61,15 @@ void Type_Manager::register_basic_types()
                                                        vector.resize(_values_as_string.size());
                                                        for(unsigned int i=0; i<_values_as_string.size(); ++i)
                                                            vector.push(std::stoi(_values_as_string[i]));
+                                                   },
+                                                   [](void* _variable_vptr)
+                                                   {
+                                                       const LDS::Vector<unsigned int>& variable = *((LDS::Vector<unsigned int>*)_variable_vptr);
+                                                       LDS::Vector<std::string> result;
+                                                       result.resize(variable.size());
+                                                       for(unsigned int i=0; i<variable.size(); ++i)
+                                                           result.push(std::to_string(variable[i]));
+                                                       return result;
                                                    }
                                                });
     register_type("bool", {
@@ -66,6 +87,13 @@ void Type_Manager::register_basic_types()
                                       var = true;
                                   else if(_values_as_string[0] == "false" || _values_as_string[0] == "-" || _values_as_string[0] == "0")
                                       var = false;
+                              },
+                              [](void* _variable_vptr)
+                              {
+                                  bool variable = *((unsigned int*)_variable_vptr);
+                                  LDS::Vector<std::string> result;
+                                  result.push(variable ? "+" : "-");
+                                  return result;
                               }
                           });
     register_type("LDS::Vector<bool>", {
@@ -87,12 +115,27 @@ void Type_Manager::register_basic_types()
                                                    else if(_values_as_string[i] == "false" || _values_as_string[i] == "-" || _values_as_string[i] == "0")
                                                        vector.push(false);
                                                }
+                                           },
+                                           [](void* _variable_vptr)
+                                           {
+                                               const LDS::Vector<bool>& variable = *((LDS::Vector<bool>*)_variable_vptr);
+                                               LDS::Vector<std::string> result;
+                                               result.resize(variable.size());
+                                               for(unsigned int i=0; i<variable.size(); ++i)
+                                                   result.push(variable[i] ? "+" : "-");
+                                               return result;
                                            }
                                        });
     register_type("std::string", {
                                      [](const std::string& /*_val*/) { return true; },
                                      [](void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string) {
                                          *((std::string*)_variable_vptr) = _values_as_string[0];
+                                     },
+                                     [](void* _variable_vptr)
+                                     {
+                                         LDS::Vector<std::string> result;
+                                         result.push(*((std::string*)_variable_vptr));
+                                         return result;
                                      }
                                  });
     register_type("LDS::Vector<std::string>", {
@@ -105,6 +148,15 @@ void Type_Manager::register_basic_types()
                                                       LDS::Vector<std::string>& vector = *((LDS::Vector<std::string>*)_variable_vptr);
                                                       vector.clear();
                                                       vector = _values_as_string;
+                                                  },
+                                                  [](void* _variable_vptr)
+                                                  {
+                                                      const LDS::Vector<std::string>& variable = *((LDS::Vector<std::string>*)_variable_vptr);
+                                                      LDS::Vector<std::string> result;
+                                                      result.resize(variable.size());
+                                                      for(unsigned int i=0; i<variable.size(); ++i)
+                                                          result.push(variable[i]);
+                                                      return result;
                                                   }
                                               });
     register_type("float", {
@@ -133,7 +185,13 @@ void Type_Manager::register_basic_types()
 
                                    return true;
                                },
-                               [](void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string) { *((float*)_variable_vptr) = std::stof(_values_as_string[0]); }
+                               [](void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string) { *((float*)_variable_vptr) = std::stof(_values_as_string[0]); },
+                               [](void* _variable_vptr)
+                               {
+                                   LDS::Vector<std::string> result;
+                                   result.push(std::to_string(*((float*)_variable_vptr)));
+                                   return result;
+                               }
                            });
     register_type("LDS::Vector<float>", {
                                             [](const std::string& _val)
@@ -168,6 +226,15 @@ void Type_Manager::register_basic_types()
                                                 vector.resize(_values_as_string.size());
                                                 for(unsigned int i=0; i<_values_as_string.size(); ++i)
                                                     vector.push(std::stof(_values_as_string[i]));
+                                            },
+                                            [](void* _variable_vptr)
+                                            {
+                                                const LDS::Vector<float>& variable = *((LDS::Vector<float>*)_variable_vptr);
+                                                LDS::Vector<std::string> result;
+                                                result.resize(variable.size());
+                                                for(unsigned int i=0; i<variable.size(); ++i)
+                                                    result.push(std::to_string(variable[i]));
+                                                return result;
                                             }
                                         });
 
@@ -185,6 +252,18 @@ void Type_Manager::register_basic_types()
                                                   map.clear();
                                                   for(unsigned int i=0; i<_values_as_string.size(); i += 2)
                                                       map.insert(_values_as_string[i], _values_as_string[i + 1]);
+                                              },
+                                              [](void* _variable_vptr)
+                                              {
+                                                  const LDS::Map<std::string, std::string>& variable = *((LDS::Map<std::string, std::string>*)_variable_vptr);
+                                                  LDS::Vector<std::string> result;
+                                                  result.resize(variable.size() * 2);
+                                                  for(LDS::Map<std::string, std::string>::Const_Iterator it = variable.iterator(); !it.end_reached(); ++it)
+                                                  {
+                                                      result.push(it.key());
+                                                      result.push(*it);
+                                                  }
+                                                  return result;
                                               }
                                           });
 }
@@ -225,4 +304,13 @@ void Type_Manager::parse(const std::string& _type_name, const LDS::Vector<std::s
 	});
 
 	utility.parse_func(_allocate_to, _values_as_string);
+}
+
+LDS::Vector<std::string> Type_Manager::serialize(const std::string& _type_name, void* _variable)
+{
+    Registred_Types_Map::Iterator utility_it = m_registred_types.find(_type_name);
+    L_ASSERT(utility_it.is_ok());
+
+    const Type_Utility& utility = *utility_it;
+    utility.serialize_func(_variable);
 }
