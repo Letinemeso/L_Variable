@@ -13,34 +13,32 @@
 #ifndef VARIABLE
 #define VARIABLE
 
-    #define INIT_VARIABLE(variable_type, parent_type)   \
-        private:    \
-            static inline std::string m_type;   \
-            static inline std::string m_history;   \
-        private:    \
+    #define INIT_VARIABLE(variable_type, parent_type) \
+        private: \
+            static inline std::string m_type; \
+            static inline std::string m_history; \
+        private: \
             using Current_Type = variable_type; \
-            using Parent_Type = parent_type;    \
+            using Parent_Type = parent_type; \
         public: \
             static const std::string& get_estimated_type() \
-            {   \
-                if(variable_type::m_type.size() == 0)   \
+            { \
+                if(variable_type::m_type.size() == 0) \
                     variable_type::m_type = #variable_type; \
                 return variable_type::m_type; \
-            }   \
-            \
-            static const std::string& get_estimated_history()  \
-            {   \
-                if(variable_type::m_history.size() == 0)   \
+            } \
+            static const std::string& get_estimated_history() \
+            { \
+                if(variable_type::m_history.size() == 0) \
                     variable_type::m_history = parent_type::get_estimated_history() + "/" + #variable_type; \
-                return variable_type::m_history;   \
-            }   \
-            \
-            const std::string& get_actual_type() const override { return variable_type::get_estimated_type(); }    \
+                return variable_type::m_history; \
+            } \
+            const std::string& get_actual_type() const override { return variable_type::get_estimated_type(); } \
             const std::string& get_actual_history() const override { return variable_type::get_estimated_history(); }
 
 
-    #define INIT_FIELDS                                                                                               \
-        LV::Variable_Base::Fields_Data_List get_fields() override {                                           \
+    #define INIT_FIELDS \
+        LV::Variable_Base::Fields_Data_List get_fields() override { \
             LV::Variable_Base::Fields_Data_List fields_result = Parent_Type::get_fields();
 
     #define ADD_FIELD(field_type, field_reference) \
@@ -68,7 +66,7 @@
                     { \
                             LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(field_name); \
                             if(check.is_ok()) \
-                            LV::Type_Manager::parse(#field_type, *check, field_ptr); \
+                                LV::Type_Manager::parse(#field_type, *check, field_ptr); \
                     }; \
                     fields_result.push_back(field_data); \
             }
@@ -79,11 +77,11 @@
 
 
     #define INIT_CHILDS \
-        public:         \
+        public: \
             LV::Variable_Base::Childs_Container_Type get_childs() override { \
                 LV::Variable_Base::Childs_Container_Type childs_result = Parent_Type::get_childs();
 
-    #define ADD_CHILD(child_name, child_ptr)    \
+    #define ADD_CHILD(child_name, child_ptr) \
                 M_register_child(childs_result, child_name, (LV::Variable_Base**)(&child_ptr));
 
     #define CHILDS_END \
@@ -91,9 +89,9 @@
             }
 
 
-    #define INIT_CHILDS_LISTS  \
+    #define INIT_CHILDS_LISTS \
         public: \
-            LV::Variable_Base::Childs_Lists get_childs_lists() override {    \
+            LV::Variable_Base::Childs_Lists get_childs_lists() override { \
                 LV::Variable_Base::Childs_Lists childs_lists_result = Parent_Type::get_childs_lists();
 
     #define ADD_CHILDS_LIST(mask, childs_list_ptr) \

@@ -7,6 +7,7 @@
 
 #include <L_Debug/L_Debug.h>
 
+
 namespace LV
 {
 
@@ -23,19 +24,20 @@ namespace LV
 			: validation_func(_validation_func), parse_func(_parse_func) { }
 	};
 
+
 	class Type_Manager final
 	{
 	private:
-        typedef LDS::Map<std::string, Type_Utility> Registred_Types_Map;
+        using Registred_Types_Map = LDS::Map<std::string, Type_Utility>;
         static Registred_Types_Map m_registred_types;
 
 	public:
         static void register_basic_types();
-        static void register_type(const std::string& _type_name, const Type_Utility& _utility);
+        static void register_type(const std::string& _type_name, const Type_Utility& _utility, bool _override = false);
 
 	public:
 		static bool validate(const std::string& _type_name, const std::string& _value_as_string);
-		static void parse(const std::string& _type_name, const LDS::Vector<std::string>& _values_as_string, void* _allocate_to);
+        static void parse(const std::string& _type_name, const LDS::Vector<std::string>& _values_as_string, void* _allocate_to);
 
 	public:
 		Type_Manager() = delete;
