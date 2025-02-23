@@ -111,7 +111,7 @@
             }
 
 
-    #define OVERRIDE_ON_VALUES_ASSIGNED void M_on_values_assigned() override;
+    #define OVERRIDE_ON_VALUES_ASSIGNED protected: void M_on_values_assigned() override;
 
     #define ON_VALUES_ASSIGNED_IMPLEMENTATION(type) void type::M_on_values_assigned()
 
