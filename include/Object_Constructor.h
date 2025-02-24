@@ -62,6 +62,8 @@ namespace LV
     public:
         template<typename Variable_Base_Child_Type>
         Tools_Configurator register_type(const std::string& _override_name = Variable_Base_Child_Type::get_estimated_type());
+        template<typename Variable_Base_Child_Type>
+        Tools_Configurator register_parent_type();
 
     private:
         std::string M_extract_type_from_history(const std::string& _type_history) const;
@@ -91,6 +93,20 @@ namespace LV
         Object_Construction_Tools construction_tools;
         construction_tools.construction_func = [this](){ return new Variable_Base_Child_Type; };
 
+        maybe_registred_type = m_registred_types.insert_and_get_iterator(type_name, construction_tools);
+        return Tools_Configurator(*maybe_registred_type);
+    }
+
+    template<typename Variable_Base_Child_Type>
+    Object_Constructor::Tools_Configurator Object_Constructor::register_parent_type()
+    {
+        std::string type_name = Variable_Base_Child_Type::get_estimated_type();
+
+        Registred_Types_Container::Iterator maybe_registred_type = m_registred_types.find(type_name);
+        if(maybe_registred_type.is_ok())
+            return Tools_Configurator(*maybe_registred_type);
+
+        Object_Construction_Tools construction_tools;
         maybe_registred_type = m_registred_types.insert_and_get_iterator(type_name, construction_tools);
         return Tools_Configurator(*maybe_registred_type);
     }
