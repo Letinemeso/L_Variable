@@ -8,13 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 FILE(GLOB_RECURSE L_Variable_include "include/*.h")
 add_custom_target(_L_Variable_include SOURCES ${L_Variable_include})
 
-add_library(L_Variable STATIC
-	source/MDL_Reader.cpp
-	source/Object_Constructor.cpp
-	source/Type_Manager.cpp
-	source/Variable_Base.cpp
-	source/Builder_Stub.cpp
-)
+file(GLOB_RECURSE Sources "source/*.cpp")
+add_library(L_Variable STATIC ${Sources} )
 
 target_include_directories(L_Variable PUBLIC 
                             "${PROJECT_BINARY_DIR}" 
