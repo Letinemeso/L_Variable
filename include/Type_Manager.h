@@ -40,6 +40,7 @@ namespace LV
         static void register_type(const std::string& _type_name, const Type_Utility& _utility, bool _override = false);
 
 	public:
+        static bool type_is_registered(const std::string& _type_name);
         static const Type_Utility& get_type_utility(const std::string& _type_name);
 
 		static bool validate(const std::string& _type_name, const std::string& _value_as_string);

@@ -454,6 +454,11 @@ void Type_Manager::register_type(const std::string &_type_name, const Type_Utili
 
 
 
+bool Type_Manager::type_is_registered(const std::string& _type_name)
+{
+    return m_registred_types.find(_type_name).is_ok();
+}
+
 const Type_Utility& Type_Manager::get_type_utility(const std::string& _type_name)
 {
     Registred_Types_Map::Iterator utility_it = m_registred_types.find(_type_name);
