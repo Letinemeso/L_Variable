@@ -13,10 +13,16 @@ namespace LV
 
 	struct Type_Utility
 	{
+        struct Allocate_Result
+        {
+            void* ptr = nullptr;
+            unsigned int size = 0;
+        };
+
         typedef bool(*Validation_Function)(const std::string& _values_as_string);
         typedef void(*Parse_Function)(void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string);
         typedef LDS::Vector<std::string>(*Serialize_Function)(void* _variable_vptr);
-        typedef void*(*Allocate_Function)(unsigned int _amount);
+        typedef Allocate_Result(*Allocate_Function)(unsigned int _amount);
         typedef void(*Clear_Function)(void* _variable_vptr);
 
         Validation_Function validation_func = nullptr;
@@ -46,7 +52,7 @@ namespace LV
 		static bool validate(const std::string& _type_name, const std::string& _value_as_string);
         static void parse(const std::string& _type_name, const LDS::Vector<std::string>& _values_as_string, void* _allocate_to);
         static LDS::Vector<std::string> serialize(const std::string& _type_name, void* _variable);
-        static void* allocate(const std::string& _type_name, unsigned int _amount);
+        static Type_Utility::Allocate_Result allocate(const std::string& _type_name, unsigned int _amount);
         static void clear(const std::string& _type_name, void* _variable_vptr);
 
 	public:
