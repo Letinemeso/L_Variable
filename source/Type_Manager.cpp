@@ -35,20 +35,9 @@ void Type_Manager::register_basic_types()
         result.push(std::to_string(*((int*)_variable_vptr)));
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new int[_amount]);
-        result.size = sizeof(int) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        int* ptr = (int*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<int>();
+    type_utility.clear_func = __construct_default_clear_function<int>();
+    type_utility.copy_func = __construct_default_copy_function<int>();
     register_type("int", type_utility);
 
 
@@ -73,20 +62,9 @@ void Type_Manager::register_basic_types()
         result.push(std::to_string(*((unsigned int*)_variable_vptr)));
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new unsigned int[_amount]);
-        result.size = sizeof(unsigned int) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        unsigned int* ptr = (unsigned int*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<unsigned int>();
+    type_utility.clear_func = __construct_default_clear_function<unsigned int>();
+    type_utility.copy_func = __construct_default_copy_function<unsigned int>();
     register_type("unsigned int", type_utility);
     register_type("uint", type_utility);
 
@@ -121,20 +99,9 @@ void Type_Manager::register_basic_types()
             result.push(std::to_string(variable[i]));
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new LDS::Vector<unsigned int>[_amount]);
-        result.size = sizeof(LDS::Vector<unsigned int>) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        LDS::Vector<unsigned int>* ptr = (LDS::Vector<unsigned int>*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<unsigned int>>();
+    type_utility.clear_func = __construct_default_clear_function<LDS::Vector<unsigned int>>();
+    type_utility.copy_func = __construct_default_copy_function<LDS::Vector<unsigned int>>();
     register_type("LDS::Vector<unsigned int>", type_utility);
     register_type("LDS::Vector<uint>", type_utility);
 
@@ -165,20 +132,9 @@ void Type_Manager::register_basic_types()
         result.push(variable ? "+" : "-");
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new bool[_amount]);
-        result.size = sizeof(bool) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        bool* ptr = (bool*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<bool>();
+    type_utility.clear_func = __construct_default_clear_function<bool>();
+    type_utility.copy_func = __construct_default_copy_function<bool>();
     register_type("bool", type_utility);
 
 
@@ -214,20 +170,9 @@ void Type_Manager::register_basic_types()
             result.push(variable[i] ? "+" : "-");
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new LDS::Vector<bool>[_amount]);
-        result.size = sizeof(LDS::Vector<bool>) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        LDS::Vector<bool>* ptr = (LDS::Vector<bool>*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<bool>>();
+    type_utility.clear_func = __construct_default_clear_function<LDS::Vector<bool>>();
+    type_utility.copy_func = __construct_default_copy_function<LDS::Vector<bool>>();
     register_type("LDS::Vector<bool>", type_utility);
 
 
@@ -249,20 +194,9 @@ void Type_Manager::register_basic_types()
         result.push(*((std::string*)_variable_vptr));
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new std::string[_amount]);
-        result.size = sizeof(std::string) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        std::string* ptr = (std::string*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<std::string>();
+    type_utility.clear_func = __construct_default_clear_function<std::string>();
+    type_utility.copy_func = __construct_default_copy_function<std::string>();
     register_type("std::string", type_utility);
 
 
@@ -289,20 +223,9 @@ void Type_Manager::register_basic_types()
             result.push(variable[i]);
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new LDS::Vector<std::string>[_amount]);
-        result.size = sizeof(LDS::Vector<std::string>) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        LDS::Vector<std::string>* ptr = (LDS::Vector<std::string>*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<std::string>>();
+    type_utility.clear_func = __construct_default_clear_function<LDS::Vector<std::string>>();
+    type_utility.copy_func = __construct_default_copy_function<LDS::Vector<std::string>>();
     register_type("LDS::Vector<std::string>", type_utility);
 
 
@@ -345,20 +268,9 @@ void Type_Manager::register_basic_types()
         result.push(std::to_string(*((float*)_variable_vptr)));
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new float[_amount]);
-        result.size = sizeof(float) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        float* ptr = (float*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<float>();
+    type_utility.clear_func = __construct_default_clear_function<float>();
+    type_utility.copy_func = __construct_default_copy_function<float>();
     register_type("float", type_utility);
 
 
@@ -408,20 +320,9 @@ void Type_Manager::register_basic_types()
             result.push(std::to_string(variable[i]));
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new LDS::Vector<float>[_amount]);
-        result.size = sizeof(LDS::Vector<float>) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        LDS::Vector<float>* ptr = (LDS::Vector<float>*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<float>>();
+    type_utility.clear_func = __construct_default_clear_function<LDS::Vector<float>>();
+    type_utility.copy_func = __construct_default_copy_function<LDS::Vector<float>>();
     register_type("LDS::Vector<float>", type_utility);
 
 
@@ -455,20 +356,9 @@ void Type_Manager::register_basic_types()
         }
         return result;
     };
-    type_utility.allocate_func =
-        [](unsigned int _amount)
-    {
-        Type_Utility::Allocate_Result result;
-        result.ptr = (void*)(new LDS::Map<std::string, std::string>[_amount]);
-        result.size = sizeof(LDS::Map<std::string, std::string>) * _amount;
-        return result;
-    };
-    type_utility.clear_func =
-        [](void* _variable_vptr)
-    {
-        LDS::Map<std::string, std::string>* ptr = (LDS::Map<std::string, std::string>*)_variable_vptr;
-        delete[] ptr;
-    };
+    type_utility.allocate_func = __construct_default_allocate_function<LDS::Map<std::string, std::string>>();
+    type_utility.clear_func = __construct_default_clear_function<LDS::Map<std::string, std::string>>();
+    type_utility.copy_func = __construct_default_copy_function<LDS::Map<std::string, std::string>>();
     register_type("String_To_String_Map", type_utility);
 }
 
@@ -548,4 +438,13 @@ void Type_Manager::clear(const std::string& _type_name, void* _variable_vptr)
     L_ASSERT(utility.clear_func);
 
     utility.clear_func(_variable_vptr);
+}
+
+void Type_Manager::copy(const std::string& _type_name, void* _variable_vptr_0, void* _variable_vptr_1)
+{
+    const Type_Utility& utility = get_type_utility(_type_name);
+
+    L_ASSERT(utility.copy_func);
+
+    utility.copy_func(_variable_vptr_0, _variable_vptr_1);
 }
