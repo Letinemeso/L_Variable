@@ -198,6 +198,7 @@ void Type_Manager::register_basic_types()
     type_utility.clear_func = __construct_default_clear_function<std::string>();
     type_utility.copy_func = __construct_default_copy_function<std::string>();
     register_type("std::string", type_utility);
+    register_type("string", type_utility);
 
 
     //  LDS::Vector<std::string>
