@@ -4,6 +4,7 @@ using namespace LV;
 
 
 Type_Manager::Registred_Types_Map Type_Manager::m_registred_types;
+Type_Manager::Types_Aliases_Map Type_Manager::m_types_aliases;
 
 
 
@@ -65,8 +66,8 @@ void Type_Manager::register_basic_types()
     type_utility.allocate_func = __construct_default_allocate_function<unsigned int>();
     type_utility.clear_func = __construct_default_clear_function<unsigned int>();
     type_utility.copy_func = __construct_default_copy_function<unsigned int>();
-    register_type("unsigned int", type_utility);
     register_type("uint", type_utility);
+    register_type_alias("uint", "unsigned int");
 
 
     //  LDS::Vector<unsigned int>
@@ -102,8 +103,8 @@ void Type_Manager::register_basic_types()
     type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<unsigned int>>();
     type_utility.clear_func = __construct_default_clear_function<LDS::Vector<unsigned int>>();
     type_utility.copy_func = __construct_default_copy_function<LDS::Vector<unsigned int>>();
-    register_type("LDS::Vector<unsigned int>", type_utility);
     register_type("LDS::Vector<uint>", type_utility);
+    register_type_alias("LDS::Vector<uint>", "LDS::Vector<unsigned int>");
 
 
     //  bool
@@ -197,8 +198,8 @@ void Type_Manager::register_basic_types()
     type_utility.allocate_func = __construct_default_allocate_function<std::string>();
     type_utility.clear_func = __construct_default_clear_function<std::string>();
     type_utility.copy_func = __construct_default_copy_function<std::string>();
-    register_type("std::string", type_utility);
     register_type("string", type_utility);
+    register_type_alias("string", "std::string");
 
 
     //  LDS::Vector<std::string>
@@ -371,18 +372,42 @@ void Type_Manager::register_type(const std::string &_type_name, const Type_Utili
         m_registred_types.insert(_type_name, _utility);
     else if(_override)
         *maybe_registred_type = _utility;
+
+    register_type_alias(_type_name, _type_name);
+}
+
+void Type_Manager::register_type_alias(const std::string& _type_name, const std::string& _type_alias)
+{
+    L_ASSERT(!m_types_aliases.find(_type_alias).is_ok());
+
+    m_types_aliases.insert(_type_alias, _type_name);
 }
 
 
 
+const std::string& Type_Manager::get_default_type_name(const std::string& _alias)
+{
+    Types_Aliases_Map::Iterator type_alias_it = m_types_aliases.find(_alias);
+    L_ASSERT(type_alias_it.is_ok());
+
+    return *type_alias_it;
+}
+
 bool Type_Manager::type_is_registered(const std::string& _type_name)
 {
-    return m_registred_types.find(_type_name).is_ok();
+    Types_Aliases_Map::Iterator maybe_type_alias_it = m_types_aliases.find(_type_name);
+    if(!maybe_type_alias_it.is_ok())
+        return false;
+
+    const std::string& original_name = *maybe_type_alias_it;
+    return m_registred_types.find(original_name).is_ok();
 }
 
 const Type_Utility& Type_Manager::get_type_utility(const std::string& _type_name)
 {
-    Registred_Types_Map::Iterator utility_it = m_registred_types.find(_type_name);
+    const std::string& original_name = get_default_type_name(_type_name);
+
+    Registred_Types_Map::Iterator utility_it = m_registred_types.find(original_name);
     L_ASSERT(utility_it.is_ok());
 
     return *utility_it;

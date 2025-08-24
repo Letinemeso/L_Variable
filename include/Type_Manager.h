@@ -80,11 +80,16 @@ namespace LV
         using Registred_Types_Map = LDS::Map<std::string, Type_Utility>;
         static Registred_Types_Map m_registred_types;
 
+        using Types_Aliases_Map = LDS::Map<std::string, std::string>;
+        static Types_Aliases_Map m_types_aliases;
+
 	public:
         static void register_basic_types();
         static void register_type(const std::string& _type_name, const Type_Utility& _utility, bool _override = false);
+        static void register_type_alias(const std::string& _type_name, const std::string& _type_alias);
 
 	public:
+        static const std::string& get_default_type_name(const std::string& _alias);
         static bool type_is_registered(const std::string& _type_name);
         static const Type_Utility& get_type_utility(const std::string& _type_name);
 
