@@ -42,6 +42,43 @@ void Type_Manager::register_basic_types()
     register_type("int", type_utility);
 
 
+    //  LDS::Vector<int>
+    type_utility.validation_func =
+        [](const std::string& _val)
+    {
+        for(unsigned int i=0; i<_val.size(); ++i)
+        {
+            if(_val[i] < '0' || _val[i] > '9')
+                return false;
+        }
+        return true;
+    };
+    type_utility.parse_func =
+        [](void* _variable_vptr, const LDS::Vector<std::string>& _values_as_string)
+    {
+        LDS::Vector<int>& vector = *((LDS::Vector<int>*)_variable_vptr);
+        vector.clear();
+        vector.resize(_values_as_string.size());
+        for(unsigned int i=0; i<_values_as_string.size(); ++i)
+            vector.push(std::stoi(_values_as_string[i]));
+    };
+    type_utility.serialize_func =
+        [](void* _variable_vptr)
+    {
+        const LDS::Vector<int>& variable = *((LDS::Vector<int>*)_variable_vptr);
+        LDS::Vector<std::string> result;
+        result.resize(variable.size());
+        for(unsigned int i=0; i<variable.size(); ++i)
+            result.push(std::to_string(variable[i]));
+        return result;
+    };
+    type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<int>>();
+    type_utility.clear_func = __construct_default_clear_function<LDS::Vector<int>>();
+    type_utility.copy_func = __construct_default_copy_function<LDS::Vector<int>>();
+    register_type("Int_Vector", type_utility);
+    register_type_alias("Int_Vector", "LDS::Vector<int>");
+
+
     //  unsigned int
     type_utility.validation_func =
         [](const std::string& _val)
@@ -103,8 +140,8 @@ void Type_Manager::register_basic_types()
     type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<unsigned int>>();
     type_utility.clear_func = __construct_default_clear_function<LDS::Vector<unsigned int>>();
     type_utility.copy_func = __construct_default_copy_function<LDS::Vector<unsigned int>>();
-    register_type("LDS::Vector<uint>", type_utility);
-    register_type_alias("LDS::Vector<uint>", "LDS::Vector<unsigned int>");
+    register_type("Uint_Vector", type_utility);
+    register_type_alias("Uint_Vector", "LDS::Vector<unsigned int>");
 
 
     //  bool
@@ -174,7 +211,8 @@ void Type_Manager::register_basic_types()
     type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<bool>>();
     type_utility.clear_func = __construct_default_clear_function<LDS::Vector<bool>>();
     type_utility.copy_func = __construct_default_copy_function<LDS::Vector<bool>>();
-    register_type("LDS::Vector<bool>", type_utility);
+    register_type("Bool_Vector", type_utility);
+    register_type_alias("Bool_Vector", "LDS::Vector<bool>");
 
 
     //  std::string
@@ -228,7 +266,8 @@ void Type_Manager::register_basic_types()
     type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<std::string>>();
     type_utility.clear_func = __construct_default_clear_function<LDS::Vector<std::string>>();
     type_utility.copy_func = __construct_default_copy_function<LDS::Vector<std::string>>();
-    register_type("LDS::Vector<std::string>", type_utility);
+    register_type("String_Vector", type_utility);
+    register_type_alias("String_Vector", "LDS::Vector<std::string>");
 
 
     //  float
@@ -325,7 +364,8 @@ void Type_Manager::register_basic_types()
     type_utility.allocate_func = __construct_default_allocate_function<LDS::Vector<float>>();
     type_utility.clear_func = __construct_default_clear_function<LDS::Vector<float>>();
     type_utility.copy_func = __construct_default_copy_function<LDS::Vector<float>>();
-    register_type("LDS::Vector<float>", type_utility);
+    register_type("Float_Vector", type_utility);
+    register_type_alias("Float_Vector", "LDS::Vector<float>");
 
 
     //  LDS::Map<std::string, std::string> - had to name differently (String_To_String_Map) due to macros not seeing comma as a part of the type
