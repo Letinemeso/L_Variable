@@ -409,16 +409,25 @@ void Type_Manager::register_type(const std::string &_type_name, const Type_Utili
     Registred_Types_Map::Iterator maybe_registred_type = m_registred_types.find(_type_name);
 
     if(!maybe_registred_type.is_ok())
+    {
         m_registred_types.insert(_type_name, _utility);
+        register_type_alias(_type_name, _type_name);
+    }
     else if(_override)
+    {
         *maybe_registred_type = _utility;
-
-    register_type_alias(_type_name, _type_name);
+    }
 }
 
 void Type_Manager::register_type_alias(const std::string& _type_name, const std::string& _type_alias)
 {
-    L_ASSERT(!m_types_aliases.find(_type_alias).is_ok());
+    Types_Aliases_Map::Iterator maybe_alias = m_types_aliases.find(_type_alias);
+
+    if(maybe_alias.is_ok())
+    {
+        L_ASSERT(*maybe_alias == _type_name);
+        return;
+    }
 
     m_types_aliases.insert(_type_alias, _type_name);
 }
