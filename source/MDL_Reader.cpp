@@ -109,7 +109,10 @@ void MDL_Reader::M_save_stub_to_file(std::ofstream &_file, const std::string& _n
 
     output_tabs(_nesting_level);
 
-    _file << "||" << _name << "||" << "\n";
+    if(_nesting_level > 0)
+        _file << "||" << _name << "||" << "\n";
+    else
+        _file << "|" << _name << "|" << "\n";
 
     output_tabs(_nesting_level);
 
