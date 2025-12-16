@@ -63,7 +63,7 @@ void Object_Constructor::M_construct_childs_arrays(LV::Variable_Base* _object, c
     }
 }
 
-void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history, const MDL_Variable_Stub& _mdl_stub) const
+void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history) const
 {
     if(_type_history.size() <= 1)
         return;
@@ -71,7 +71,7 @@ void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _obj
     std::string type = M_extract_type_from_history(_type_history);
     std::string remaining_history = _type_history.substr(0, _type_history.size() - 1 - type.size());
 
-    M_initialize_constructed_object(_object, remaining_history, _mdl_stub);
+    M_initialize_constructed_object(_object, remaining_history);
 
     Registred_Types_Container::Const_Iterator maybe_registred_type = m_registred_types.find(type);  //  maybe not the most efficient way of doing this
     if(!maybe_registred_type.is_ok())
@@ -86,6 +86,25 @@ void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _obj
 }
 
 
+
+LV::Variable_Base* Object_Constructor::construct(const std::string& _type_name) const
+{
+    Registred_Types_Container::Const_Iterator maybe_registred_type = m_registred_types.find(_type_name);
+    L_ASSERT(maybe_registred_type.is_ok());
+
+    const Construction_Func_Type& construction_func = maybe_registred_type->construction_func;
+    L_ASSERT(construction_func);
+
+    LV::Variable_Base* result = construction_func();
+    result->inject_object_constructor(this);
+
+    std::string real_object_type = M_extract_type_from_history(result->get_actual_history());
+    std::string type_history = result->get_actual_history().substr(0, result->get_actual_history().size() - 1 - real_object_type.size()) + '/' + _type_name;  //  object type can be overridden
+
+    M_initialize_constructed_object(result, type_history);
+
+    return result;
+}
 
 LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_stub) const
 {
@@ -102,6 +121,8 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
     L_ASSERT(construction_func);
 
     LV::Variable_Base* result = construction_func();
+    result->inject_object_constructor(this);
+
     result->M_assign_values(_mdl_stub);
 
     const LV::Variable_Base::Childs_Container_Type& results_childs = result->get_childs();
@@ -120,7 +141,7 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
         else
         {
             child_ptr_ref->assign_values(*maybe_child_stub);
-            M_initialize_constructed_object(child_ptr_ref, child_ptr_ref->get_actual_history(), *maybe_child_stub);
+            M_initialize_constructed_object(child_ptr_ref, child_ptr_ref->get_actual_history());
         }
     }
 
@@ -131,7 +152,7 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
     std::string real_object_type = M_extract_type_from_history(result->get_actual_history());
     std::string type_history = result->get_actual_history().substr(0, result->get_actual_history().size() - 1 - real_object_type.size()) + '/' + type_str;  //  object type can be overridden
 
-    M_initialize_constructed_object(result, type_history, _mdl_stub);
+    M_initialize_constructed_object(result, type_history);
 
     return result;
 }

@@ -68,9 +68,10 @@ namespace LV
     private:
         std::string M_extract_type_from_history(const std::string& _type_history) const;
         void M_construct_childs_arrays(LV::Variable_Base* _object, const LV::Variable_Base::Childs_List_Data& _childs_list_data, const MDL_Variable_Stub& _mdl_stub) const;
-        void M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history, const MDL_Variable_Stub& _mdl_stub) const;
+        void M_initialize_constructed_object(LV::Variable_Base* _object, const std::string& _type_history) const;
 
     public:
+        LV::Variable_Base* construct(const std::string& _type_name) const;
         LV::Variable_Base* construct(const MDL_Variable_Stub& _mdl_stub) const;
 
     };

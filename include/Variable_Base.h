@@ -35,7 +35,9 @@
                 return variable_type::m_history; \
             } \
             const std::string& get_actual_type() const override { return variable_type::get_estimated_type(); } \
-            const std::string& get_actual_history() const override { return variable_type::get_estimated_history(); }
+            const std::string& get_actual_history() const override { return variable_type::get_estimated_history(); } \
+        public: \
+            static variable_type* construct_copy_from(variable_type* _from) { LV::Variable_Base* copy = _from->construct_copy(); L_ASSERT(LV::cast_variable<variable_type>(copy)); return (variable_type*)copy; }
 
 
     #define INIT_FIELDS \
@@ -48,6 +50,7 @@
                 field_data.name = #field_reference; \
                 field_data.type_name = #field_type; \
                 void* field_ptr = &field_reference; \
+                field_data.field_ptr = field_ptr; \
                 field_data.init_func = [field_ptr](const LV::MDL_Variable_Stub& _stub) \
                 { \
                     LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(#field_reference); \
@@ -58,6 +61,10 @@
                 { \
                     return LV::Type_Manager::serialize(#field_type, field_ptr); \
                 }; \
+                field_data.copy_func = [field_ptr](void* _copy_to) \
+                { \
+                    return LV::Type_Manager::copy(#field_type, _copy_to, field_ptr); \
+                }; \
                 fields_result.push_back(field_data); \
             }
 
@@ -67,6 +74,7 @@
                     field_data.name = field_name; \
                     field_data.type_name = #field_type; \
                     void* field_ptr = &field_reference; \
+                    field_data.field_ptr = field_ptr; \
                     field_data.init_func = [field_ptr](const LV::MDL_Variable_Stub& _stub) \
                     { \
                         LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(field_name); \
@@ -76,6 +84,10 @@
                     field_data.serialization_func = [field_ptr]() \
                     { \
                         return LV::Type_Manager::serialize(#field_type, field_ptr); \
+                    }; \
+                    field_data.copy_func = [field_ptr](void* _copy_to) \
+                    { \
+                            return LV::Type_Manager::copy(#field_type, _copy_to, field_ptr); \
                     }; \
                     fields_result.push_back(field_data); \
             }
@@ -131,14 +143,17 @@ namespace LV
         using Childs_Container_Type = LDS::Map<std::string, Variable_Base**>;
         using Init_Field_Func = LST::Function<void(const MDL_Variable_Stub&)>;
         using Serialize_Field_Func = LST::Function<LDS::Vector<std::string>()>;
+        using Copy_Func = LST::Function<void(void*)>;
 
     public:
         struct Field_Data
         {
             std::string name;
             std::string type_name;
+            void* field_ptr = nullptr;
             Init_Field_Func init_func;
             Serialize_Field_Func serialization_func;
+            Copy_Func copy_func;
         };
         using Fields_Data_List = LDS::List<Field_Data>;
 
@@ -160,6 +175,16 @@ namespace LV
     private:
         static inline std::string m_type;
         static inline std::string m_history;
+
+    private:
+        const Object_Constructor* m_object_constructor;
+
+    public:
+        Variable_Base();
+        virtual ~Variable_Base();
+
+    public:
+        inline void inject_object_constructor(const Object_Constructor* _ptr) { m_object_constructor = _ptr; }
 
 	public:
         static const std::string& get_estimated_type();
@@ -183,21 +208,20 @@ namespace LV
         void M_pack_childs(MDL_Variable_Stub& _stub);
         void M_pack_childs_lists(MDL_Variable_Stub& _stub);
 
+        void M_copy_fieds(LV::Variable_Base* _to);
+        void M_copy_childs(LV::Variable_Base* _to);
+        void M_copy_childs_lists(LV::Variable_Base* _to);
+        void M_init_copy(LV::Variable_Base* _copy);
+
     protected:
         void clear_childs_list(Childs_List& _list);
 
     public:
         void assign_values(const MDL_Variable_Stub& _stub);
         MDL_Variable_Stub pack();
-
-	public:
-		Variable_Base();
-		virtual ~Variable_Base();
+        Variable_Base* construct_copy();
 
 	};
-
-
-
 
 
 	template<typename T>
