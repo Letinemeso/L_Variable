@@ -68,7 +68,8 @@ void Variable_Base::M_init_childs(const MDL_Variable_Stub& _stub)
 
     for(Childs_Container_Type::Iterator it = childs.iterator(); !it.end_reached(); ++it)
     {
-        L_ASSERT(*(*it) != nullptr);
+        if(*(*it) == nullptr)
+            continue;
 
         const std::string& name = it.key();
 
