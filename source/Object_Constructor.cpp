@@ -81,8 +81,6 @@ void Object_Constructor::M_initialize_constructed_object(LV::Variable_Base* _obj
 
     if(initialization_func)
         initialization_func(_object);
-
-    _object->M_on_values_assigned();
 }
 
 
@@ -102,6 +100,7 @@ LV::Variable_Base* Object_Constructor::construct(const std::string& _type_name) 
     std::string type_history = result->get_actual_history().substr(0, result->get_actual_history().size() - 1 - real_object_type.size()) + '/' + _type_name;  //  object type can be overridden
 
     M_initialize_constructed_object(result, type_history);
+    result->M_on_values_assigned();
 
     return result;
 }
@@ -140,8 +139,8 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
             child_ptr_ref = construct(*maybe_child_stub);
         else
         {
-            child_ptr_ref->assign_values(*maybe_child_stub);
             M_initialize_constructed_object(child_ptr_ref, child_ptr_ref->get_actual_history());
+            child_ptr_ref->assign_values(*maybe_child_stub);
         }
     }
 
@@ -153,6 +152,7 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable_Stub& _mdl_s
     std::string type_history = result->get_actual_history().substr(0, result->get_actual_history().size() - 1 - real_object_type.size()) + '/' + type_str;  //  object type can be overridden
 
     M_initialize_constructed_object(result, type_history);
+    result->M_on_values_assigned();
 
     return result;
 }
