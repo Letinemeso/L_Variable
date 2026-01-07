@@ -61,6 +61,16 @@
 
     #define BUILDER_STUB_CAST_PRODUCT Constructed_Type* product = (Constructed_Type*)_product
 
+
+    #define INIT_BUILDER_STUB_SETTERS void M_init_setters(LV::Variable_Base* _product) const override   \
+    {                                                                                                   \
+        Parent_Type::M_init_setters(_product);                                                          \
+        BUILDER_STUB_CAST_PRODUCT;
+
+    #define ADD_BUILDER_STUB_SETTER(constructed_type_setter_function, value_to_set) product->constructed_type_setter_function(value_to_set);
+
+    #define BUILDER_STUB_SETTERS_END }
+
 #endif
 
 
@@ -80,7 +90,8 @@ namespace LV
 
     protected:
         virtual LV::Variable_Base* M_construct_product() const = 0;
-        virtual void M_init_constructed_product(LV::Variable_Base* /*_product*/) const {}
+        virtual void M_init_constructed_product(LV::Variable_Base* /*_product*/) const { }
+        virtual void M_init_setters(LV::Variable_Base* /*_product*/) const { }
 
     public:
         LV::Variable_Base* construct() const;
