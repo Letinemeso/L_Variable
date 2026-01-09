@@ -15,4 +15,5 @@ target_include_directories(L_Variable PUBLIC
                             "${PROJECT_BINARY_DIR}" 
                             "${PROJECT_SOURCE_DIR}/include"
                             "${PROJECT_SOURCE_DIR}/../L_Utility/include"
+                            "${PROJECT_SOURCE_DIR}/../L_Utility/glm"
                             )
