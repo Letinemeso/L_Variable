@@ -481,8 +481,8 @@ void Type_Manager::parse(const std::string& _type_name, const LDS::Vector<std::s
 
 	L_DEBUG_FUNC_NOARG([&]()	//	crashes if validation is failed
 	{
-		for(unsigned int i=0; i<_values_as_string.size(); ++i)
-			L_ASSERT(utility.validation_func(_values_as_string[i]));
+        for(unsigned int i = 0; i < _values_as_string.size(); ++i)
+            L_ASSERT_WITH_INFO(utility.validation_func(_values_as_string[i]), "Failed validation of value " + _values_as_string[i] + " for type " + _type_name);
 	});
 
 	utility.parse_func(_allocate_to, _values_as_string);
