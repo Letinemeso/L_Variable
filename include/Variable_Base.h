@@ -127,6 +127,8 @@
 
     #define ON_VALUES_ASSIGNED_IMPLEMENTATION(type) void type::M_on_values_assigned()
 
+    #define PARENT_ON_VALUES_ASSIGNED Parent_Type::M_on_values_assigned()
+
 
 #endif
 
