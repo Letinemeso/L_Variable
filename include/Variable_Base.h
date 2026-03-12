@@ -3,6 +3,7 @@
 #include <string>
 #include <cstring>
 
+#include <Stuff/Cast_Tools.h>
 #include <Stuff/Mask.h>
 #include <Stuff/Function_Wrapper.h>
 #include <Data_Structures/List.h>
@@ -241,7 +242,7 @@ namespace LV
         if(std::memcmp(T_type.data(), var_type.data(), T_type.size()) != 0)
             return nullptr;
 
-		return (T*)_var;
+        return LST::raw_cast<T>(_var);
 	}
 
     template<typename T>
