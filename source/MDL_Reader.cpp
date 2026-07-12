@@ -153,7 +153,7 @@ void MDL_Reader::M_save_stub_to_file(std::ofstream &_file, const std::string& _n
 std::string MDL_Reader::M_extract_from_file(const std::string &_path) const
 {
 	std::ifstream file(_path + ".mdl", std::ifstream::binary);
-	L_ASSERT(file.is_open());
+    L_ASSERT_WITH_INFO(file.is_open(), "Unable to open \"" + _path + ".mdl\"");
 
 	file.seekg(0, std::ifstream::end);
 	unsigned int length = file.tellg();
