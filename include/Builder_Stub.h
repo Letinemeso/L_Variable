@@ -23,6 +23,12 @@
         {                                                                               \
             return cast_product(_stub->construct());                                    \
         }                                                                               \
+        static inline Constructed_Type* construct_from_if_exists(const LV::Builder_Stub* _stub) \
+        {                                                                                       \
+            if(!_stub)                                                                          \
+                return nullptr;                                                                 \
+            return cast_product(_stub->construct());                                            \
+        }                                                                                       \
     public:
 
     #define INIT_DEFAULT_BUILDER_STUB(Type_To_Construct)                                                                                      \
@@ -40,6 +46,12 @@
         {                                                                                                                                     \
             return cast_product(_stub->construct());                                                                                          \
         }                                                                                                                                     \
+        static inline Constructed_Type* construct_from_if_exists(const LV::Builder_Stub* _stub)                                               \
+        {                                                                                                                                     \
+            if(!_stub)                                                                                                                        \
+                return nullptr;                                                                                                               \
+            return cast_product(_stub->construct());                                                                                          \
+        }                                                                                                                                     \
         public:
 
     #define INIT_NULL_BUILDER_STUB(Type_To_Construct)                                                                                         \
@@ -55,6 +67,12 @@
         }                                                                                                                                     \
         static inline Constructed_Type* construct_from(const LV::Builder_Stub* _stub)                                                         \
         {                                                                                                                                     \
+            return cast_product(_stub->construct());                                                                                          \
+        }                                                                                                                                     \
+        static inline Constructed_Type* construct_from_if_exists(const LV::Builder_Stub* _stub)                                               \
+        {                                                                                                                                     \
+            if(!_stub)                                                                                                                        \
+                return nullptr;                                                                                                               \
             return cast_product(_stub->construct());                                                                                          \
         }                                                                                                                                     \
     public:
