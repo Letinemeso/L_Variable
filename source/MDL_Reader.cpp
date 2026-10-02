@@ -93,7 +93,7 @@ const MDL_Reader::Stub_Map& MDL_Reader::stubs() const
 const MDL_Variable_Stub& MDL_Reader::get_stub(const std::string &_name) const
 {
     Stub_Map::Const_Iterator it = m_stubs.find(_name);
-    L_ASSERT(it.is_ok());
+    L_ASSERT_WITH_INFO(it.is_ok(), "Object with name \"" + _name + "\" not found");
     return *it;
 }
 
