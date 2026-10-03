@@ -227,28 +227,45 @@ namespace LV
 	};
 
 
-	template<typename T>
-	const T* cast_variable(const Variable_Base* _var)
+    template<typename _To_Type>
+    inline bool can_be_cast_to(const Variable_Base* _what)
+    {
+        L_ASSERT(_what);
+
+        const std::string& T_type = _To_Type::get_estimated_history();
+        const std::string& var_type = _what->get_actual_history();
+
+        if(var_type.size() < T_type.size())
+            return false;
+
+        if(std::memcmp(T_type.data(), var_type.data(), T_type.size()) != 0)
+            return false;
+
+        return true;
+    }
+
+    template<typename _To_Type>
+    inline bool can_be_cast_to(const Variable_Base& _what)
+    {
+        return can_be_cast_to<_To_Type>(&_what);
+    }
+
+    template<typename _To_Type>
+    const _To_Type* cast_variable(const Variable_Base* _var)
 	{
 		if(_var == nullptr)
 			return nullptr;
 
-        const std::string& T_type = T::get_estimated_history();
-        const std::string& var_type = _var->get_actual_history();
-
-        if(var_type.size() < T_type.size())
-			return nullptr;
-
-        if(std::memcmp(T_type.data(), var_type.data(), T_type.size()) != 0)
+        if(!can_be_cast_to<_To_Type>(_var))
             return nullptr;
 
-        return LST::raw_cast<T>(_var);
+        return LST::raw_cast<_To_Type>(_var);
 	}
 
-    template<typename T>
-    inline T* cast_variable(Variable_Base* _var)
+    template<typename _To_Type>
+    inline _To_Type* cast_variable(Variable_Base* _var)
     {
-        return (T*)cast_variable<T>((const Variable_Base*)_var);
+        return (_To_Type*)cast_variable<_To_Type>((const Variable_Base*)_var);
     }
 
 }
