@@ -85,6 +85,7 @@ namespace LV
 
 	public:
         static void register_basic_types();
+        static void register_math_types();
         static void register_type(const std::string& _type_name, const Type_Utility& _utility, bool _override = false);
         static void register_type_alias(const std::string& _type_name, const std::string& _type_alias);
 
@@ -105,6 +106,6 @@ namespace LV
 		Type_Manager(const Type_Manager&) = delete;
 		Type_Manager(Type_Manager&&) = delete;
 
-	};
+    };
 
 }
