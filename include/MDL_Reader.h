@@ -60,9 +60,12 @@ namespace LV
     private:
         void M_save_stub_to_file(std::ofstream& _file, const std::string& _name, const MDL_Variable_Stub& _stub, unsigned int _nesting_level = 0) const;
 
+        void M_crop_file_name(std::string& _name) const;
+
         std::string M_extract_from_file(const std::string& _path) const;
         void M_preprocess_commentaries(std::string& _raw) const;
         void M_preprocess_includes(const std::string& _root_path, std::string& _raw) const;
+        void M_preprocess_value_includes(const std::string& _root_path, std::string& _raw) const;
 
         unsigned int M_find_symbol(const std::string& _str, unsigned int _offset, char _symbol) const;
         unsigned int M_find_symbol_from_end(const std::string& _str, int _offset, char _symbol) const;
