@@ -342,12 +342,12 @@ void MDL_Reader::M_preprocess_value_includes(const std::string& _root_path, std:
         path += file_name;
 
         LST::File file(path);
-        L_ASSERT(file.exists());
+        L_ASSERT_WITH_INFO(file.exists(), "File \"" + path + "\" does not exist");
         std::string raw_nested = file.extract_block();
 
         _raw = _raw.substr(0, replace_begin) + '"' + raw_nested + '"' + _raw.substr(replace_end);
 
-        i += raw_nested.size();
+        i += raw_nested.size() + 1;
     }
 }
 
