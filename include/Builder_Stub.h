@@ -102,7 +102,9 @@
         Parent_Type::M_init_setters(_product);                                                          \
         BUILDER_STUB_CAST_PRODUCT;
 
-    #define ADD_BUILDER_STUB_SETTER(constructed_type_setter_function, value_to_set) product->constructed_type_setter_function(value_to_set);
+    #define ADD_BUILDER_STUB_SETTER(constructed_type_setter_function, _VALUE) product->constructed_type_setter_function(_VALUE);
+
+    #define ADD_DEFAULT_BUILDER_STUB_SETTER(_VALUE) product->set_##_VALUE(_VALUE);
 
     #define BUILDER_STUB_SETTERS_END }
 
