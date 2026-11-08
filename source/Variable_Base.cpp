@@ -19,16 +19,16 @@ Variable_Base::~Variable_Base()
 
 const std::string& Variable_Base::get_estimated_type()
 {
-    if(m_type.size() == 0)
-        m_type = "LV::Variable_Base";
-    return m_type;
+    if(s_type.size() == 0)
+        s_type = "LV::Variable_Base";
+    return s_type;
 }
 
 const std::string& Variable_Base::get_estimated_history()
 {
-    if(m_history.size() == 0)
-        m_history = "/LV::Variable_Base";
-    return m_history;
+    if(s_history.size() == 0)
+        s_history = "/LV::Variable_Base";
+    return s_history;
 }
 
 const std::string& Variable_Base::get_actual_type() const

@@ -3,6 +3,7 @@
 #include <string>
 #include <cstring>
 
+#include <Stuff/Boilerplate.h>
 #include <Stuff/Cast_Tools.h>
 #include <Stuff/Mask.h>
 #include <Stuff/Function_Wrapper.h>
@@ -176,8 +177,8 @@ namespace LV
         using Childs_Lists = LDS::List<Childs_List_Data>;
 
     private:
-        static inline std::string m_type;
-        static inline std::string m_history;
+        static inline std::string s_type;
+        static inline std::string s_history;
 
     private:
         const Object_Constructor* m_object_constructor;
