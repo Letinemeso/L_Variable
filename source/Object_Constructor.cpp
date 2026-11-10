@@ -47,9 +47,9 @@ void Object_Constructor::M_construct_childs_arrays(LV::Variable_Base* _object, c
 
     LV::Variable_Base::Childs_List& childs_list = *_childs_list_data.childs_list_ptr;
 
-    for(LV::MDL_Variable::Child_Names_Order_List::Const_Iterator mdl_child_names_it = _mdl_stub.child_names_order().begin(); !mdl_child_names_it.end_reached(); ++mdl_child_names_it)
+    for(unsigned int i = 0; i < _mdl_stub.child_names_order().size(); ++i)
     {
-        const std::string& child_name = *mdl_child_names_it;
+        const std::string& child_name = _mdl_stub.child_names_order()[i];
 
         if(!name_mask.compare(child_name))
             continue;

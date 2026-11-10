@@ -96,7 +96,7 @@ void Variable_Base::M_pack_childs(MDL_Variable& _stub)
     Childs_Container_Type childs = get_childs();
     for(Childs_Container_Type::Iterator it = childs.iterator(); !it.end_reached(); ++it)
     {
-        _stub.child_names_order().push_back(it.key());
+        _stub.child_names_order().push(it.key());
         _stub.childs().insert(it.key(), (**it)->pack());
     }
 }
@@ -109,7 +109,7 @@ void Variable_Base::M_pack_childs_lists(MDL_Variable& _stub)
         Childs_List& childs_list = *lists_it->childs_list_ptr;
         for(Childs_List::Iterator it = childs_list.begin(); !it.end_reached(); ++it)
         {
-            _stub.child_names_order().push_back(it->name);
+            _stub.child_names_order().push(it->name);
             _stub.childs().insert(it->name, it->child_ptr->pack());
         }
     }
