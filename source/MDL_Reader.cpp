@@ -194,26 +194,16 @@ void MDL_Reader::M_crop_file_name(std::string& _name) const
 
 std::string MDL_Reader::M_extract_from_file(const std::string &_path) const
 {
-	std::ifstream file(_path + ".mdl", std::ifstream::binary);
-    L_ASSERT_WITH_INFO(file.is_open(), "Unable to open \"" + _path + ".mdl\"");
+    LST::File file(_path + ".mdl");
+    L_ASSERT_WITH_INFO(file.exists(), "Unable to open \"" + file.get_path() + ".mdl\"");
+    std::string source = file.extract_block();
 
-	file.seekg(0, std::ifstream::end);
-	unsigned int length = file.tellg();
-	file.seekg(0, std::ifstream::beg);
+    M_preprocess_commentaries(source);
+    M_preprocess_includes(_path, source);
+    M_preprocess_value_includes(_path, source);
+    M_preprocess_predefines_includes(_path, source);
 
-	std::string result;
-	result.resize(length);
-    for(unsigned int i = 0; i < length; ++i)
-		result[i] = file.get();
-
-	file.close();
-
-    M_preprocess_commentaries(result);
-    M_preprocess_includes(_path, result);
-    M_preprocess_value_includes(_path, result);
-    M_preprocess_predefines_includes(_path, result);
-
-	return result;
+    return source;
 }
 
 void MDL_Reader::M_preprocess_commentaries(std::string &_raw) const
@@ -585,7 +575,7 @@ MDL_Variable MDL_Reader::M_parse_stub(const std::string &_raw_data) const
             std::string raw_child_data = M_extract_variable_data(_raw_data, offset);
             MDL_Variable child = M_parse_stub(raw_child_data);
 
-            result.child_names_order().push_back(name);
+            result.child_names_order().push(name);
             result.childs().insert((std::string&&)name, (MDL_Variable&&)child);
         }
         else
