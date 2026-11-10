@@ -47,14 +47,14 @@ void Object_Constructor::M_construct_childs_arrays(LV::Variable_Base* _object, c
 
     LV::Variable_Base::Childs_List& childs_list = *_childs_list_data.childs_list_ptr;
 
-    for(LV::MDL_Variable::Child_Names_Order_List::Const_Iterator mdl_child_names_it = _mdl_stub.child_names_order.begin(); !mdl_child_names_it.end_reached(); ++mdl_child_names_it)
+    for(LV::MDL_Variable::Child_Names_Order_List::Const_Iterator mdl_child_names_it = _mdl_stub.child_names_order().begin(); !mdl_child_names_it.end_reached(); ++mdl_child_names_it)
     {
         const std::string& child_name = *mdl_child_names_it;
 
         if(!name_mask.compare(child_name))
             continue;
 
-        LV::MDL_Variable::Childs_Map::Const_Iterator child_it = _mdl_stub.childs.find(child_name);
+        LV::MDL_Variable::Childs_Map::Const_Iterator child_it = _mdl_stub.childs().find(child_name);
         L_ASSERT(child_it.is_ok());     //  just in case
 
         LV::Variable_Base* child = construct(*child_it);
@@ -107,7 +107,7 @@ LV::Variable_Base* Object_Constructor::construct(const std::string& _type_name) 
 
 LV::Variable_Base* Object_Constructor::construct(const MDL_Variable& _mdl_stub) const
 {
-    LDS::Map<std::string, LDS::Vector<std::string>>::Const_Iterator maybe_type_field = _mdl_stub.fields.find("type");
+    LDS::Map<std::string, LDS::Vector<std::string>>::Const_Iterator maybe_type_field = _mdl_stub.fields().find("type");
     L_ASSERT(maybe_type_field.is_ok());
     L_ASSERT((*maybe_type_field).size() == 1);
 
@@ -128,7 +128,7 @@ LV::Variable_Base* Object_Constructor::construct(const MDL_Variable& _mdl_stub) 
 
     for(LV::Variable_Base::Childs_Container_Type::Const_Iterator it = results_childs.iterator(); !it.end_reached(); ++it)
     {
-        auto maybe_child_stub = _mdl_stub.childs.find(it.key());
+        auto maybe_child_stub = _mdl_stub.childs().find(it.key());
 
         if(!maybe_child_stub.is_ok())
             continue;

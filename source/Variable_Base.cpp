@@ -73,7 +73,7 @@ void Variable_Base::M_init_childs(const MDL_Variable& _stub)
 
         const std::string& name = it.key();
 
-        MDL_Variable::Childs_Map::Const_Iterator maybe_child_stub = _stub.childs.find(name);
+        MDL_Variable::Childs_Map::Const_Iterator maybe_child_stub = _stub.childs().find(name);
         L_ASSERT(maybe_child_stub.is_ok());
 
         (**it)->assign_values(*maybe_child_stub);
@@ -87,7 +87,7 @@ void Variable_Base::M_pack_fields(MDL_Variable& _stub)
     for(Fields_Data_List::Iterator it = fields.begin(); !it.end_reached(); ++it)
     {
         const Field_Data& field_data = *it;
-        _stub.fields.insert(field_data.name, field_data.serialization_func());
+        _stub.fields().insert(field_data.name, field_data.serialization_func());
     }
 }
 
@@ -96,8 +96,8 @@ void Variable_Base::M_pack_childs(MDL_Variable& _stub)
     Childs_Container_Type childs = get_childs();
     for(Childs_Container_Type::Iterator it = childs.iterator(); !it.end_reached(); ++it)
     {
-        _stub.child_names_order.push_back(it.key());
-        _stub.childs.insert(it.key(), (**it)->pack());
+        _stub.child_names_order().push_back(it.key());
+        _stub.childs().insert(it.key(), (**it)->pack());
     }
 }
 
@@ -109,8 +109,8 @@ void Variable_Base::M_pack_childs_lists(MDL_Variable& _stub)
         Childs_List& childs_list = *lists_it->childs_list_ptr;
         for(Childs_List::Iterator it = childs_list.begin(); !it.end_reached(); ++it)
         {
-            _stub.child_names_order.push_back(it->name);
-            _stub.childs.insert(it->name, it->child_ptr->pack());
+            _stub.child_names_order().push_back(it->name);
+            _stub.childs().insert(it->name, it->child_ptr->pack());
         }
     }
 }

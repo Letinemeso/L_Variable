@@ -3,33 +3,13 @@
 #include <string>
 #include <fstream>
 
-#include <Data_Structures/Vector.h>
-#include <Data_Structures/List.h>
-#include <Data_Structures/Map.h>
-
 #include <L_Debug/L_Debug.h>
+
+#include <MDL_Variable.h>
 
 
 namespace LV
 {
-
-    struct MDL_Variable
-    {
-        using Field_Data_Vector = LDS::Vector<std::string>;
-        using Fields_Map = LDS::Map<std::string, Field_Data_Vector>;
-        using Childs_Map = LDS::Map<std::string, MDL_Variable>;
-        using Child_Names_Order_List = LDS::List<std::string>;
-
-        Fields_Map fields;
-        Childs_Map childs;
-        Child_Names_Order_List child_names_order;
-
-        MDL_Variable(){}
-        MDL_Variable(const MDL_Variable& _other) : fields(_other.fields), childs(_other.childs), child_names_order(_other.child_names_order) {}
-        MDL_Variable(MDL_Variable&& _other) : fields((Fields_Map&&)_other.fields), childs((Childs_Map&&)_other.childs), child_names_order(_other.child_names_order) {}
-        void operator =(MDL_Variable&& _other) { fields = (Fields_Map&&)_other.fields; childs = (Childs_Map&&)_other.childs; child_names_order = (Child_Names_Order_List&&)_other.child_names_order; }
-	};
-
 
 	class MDL_Reader final
 	{
@@ -66,8 +46,6 @@ namespace LV
         void M_save_stub_to_file(std::ofstream& _file, const std::string& _name, const MDL_Variable& _stub, unsigned int _nesting_level = 0) const;
 
         void M_crop_file_name(std::string& _name) const;
-
-        // LDS::Vector<std::string> M_parse_predefine_path(const std::string& _path) const;
 
         std::string M_extract_from_file(const std::string& _path) const;
         void M_preprocess_commentaries(std::string& _raw) const;

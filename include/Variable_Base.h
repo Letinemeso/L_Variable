@@ -55,7 +55,7 @@
                 field_data.field_ptr = field_ptr; \
                 field_data.init_func = [field_ptr](const LV::MDL_Variable& _stub) \
                 { \
-                    LV::MDL_Variable::Fields_Map::Const_Iterator check = _stub.fields.find(#field_reference); \
+                    LV::MDL_Variable::Fields_Map::Const_Iterator check = _stub.fields().find(#field_reference); \
                     if(check.is_ok()) \
                         LV::Type_Manager::parse(#field_type, *check, field_ptr); \
                 }; \
@@ -79,7 +79,7 @@
                     field_data.field_ptr = field_ptr; \
                     field_data.init_func = [field_ptr](const LV::MDL_Variable& _stub) \
                     { \
-                        LV::MDL_Variable::Fields_Map::Const_Iterator check = _stub.fields.find(field_name); \
+                        LV::MDL_Variable::Fields_Map::Const_Iterator check = _stub.fields().find(field_name); \
                         if(check.is_ok()) \
                             LV::Type_Manager::parse(#field_type, *check, field_ptr); \
                     }; \
