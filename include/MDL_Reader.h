@@ -1,5 +1,4 @@
-#ifndef MDL_READER_H
-#define MDL_READER_H
+#pragma once
 
 #include <string>
 #include <fstream>
@@ -31,12 +30,14 @@ namespace LV
         void operator =(MDL_Variable_Stub&& _other) { fields = (Fields_Map&&)_other.fields; childs = (Childs_Map&&)_other.childs; child_names_order = (Child_Names_Order_List&&)_other.child_names_order; }
 	};
 
+
 	class MDL_Reader final
 	{
 	public:
-        typedef LDS::Map<std::string, MDL_Variable_Stub> Stub_Map;
+        using Stub_Map = LDS::Map<std::string, MDL_Variable_Stub>;
 
 	private:
+        Stub_Map m_predefines;
 		Stub_Map m_stubs;
 
 	public:
@@ -47,9 +48,11 @@ namespace LV
 		MDL_Reader(MDL_Reader&& _other) = delete;
 
 	public:
+        void parse_predefines_file(const std::string& _path);
 		void parse_file(const std::string& _path);
         void add_stub(const std::string& _name, const MDL_Variable_Stub& _stub);
         void add_stub(const std::string& _name, MDL_Variable_Stub&& _stub);
+        void clear_predefines();
 		void clear();
 		void save_to_file(const std::string& _path) const;
 
@@ -58,14 +61,22 @@ namespace LV
 		const MDL_Variable_Stub& get_stub(const std::string& _name) const;
 
     private:
+        void M_parse_file(const std::string& _path, Stub_Map& _result_storage);
+
         void M_save_stub_to_file(std::ofstream& _file, const std::string& _name, const MDL_Variable_Stub& _stub, unsigned int _nesting_level = 0) const;
 
         void M_crop_file_name(std::string& _name) const;
+
+        // LDS::Vector<std::string> M_parse_predefine_path(const std::string& _path) const;
 
         std::string M_extract_from_file(const std::string& _path) const;
         void M_preprocess_commentaries(std::string& _raw) const;
         void M_preprocess_includes(const std::string& _root_path, std::string& _raw) const;
         void M_preprocess_value_includes(const std::string& _root_path, std::string& _raw) const;
+        void M_preprocess_predefines_includes(const std::string& _root_path, std::string& _raw) const;
+        void M_preprocess_replacement(const std::string& _root_path, std::string& _raw,
+                                      const std::string& _opener, const std::string& _closer,
+                                      const LST::Function<std::string(const std::string&, const std::string&)>& _extract_replacement) const;
 
         unsigned int M_find_symbol(const std::string& _str, unsigned int _offset, char _symbol) const;
         unsigned int M_find_symbol_from_end(const std::string& _str, int _offset, char _symbol) const;
@@ -87,5 +98,3 @@ namespace LV
 	};
 
 }
-
-#endif // MDL_READER_H

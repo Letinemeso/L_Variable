@@ -17,37 +17,14 @@ MDL_Reader::~MDL_Reader()
 
 
 
+void MDL_Reader::parse_predefines_file(const std::string& _path)
+{
+    M_parse_file(_path, m_predefines);
+}
+
 void MDL_Reader::parse_file(const std::string &_path)
 {
-	std::string raw_data = M_extract_from_file(_path);
-	unsigned int raw_size = raw_data.size();
-
-	unsigned int offset = 0;
-	while(offset < raw_data.size())
-	{
-		std::string line = M_extract_line(raw_data, offset);
-		offset += line.size() + 1;
-
-		while(M_line_is_empty(line) && offset < raw_size)
-		{
-			line = M_extract_line(raw_data, offset);
-			offset += line.size() + 1;
-		}
-
-		if(offset >= raw_size)
-			break;
-
-        MDL_Variable_Stub stub;
-        std::string name = M_parse_name(line);
-        L_ASSERT(name.size() > 0);
-
-        L_ASSERT(!m_stubs.find(name).is_ok());
-
-		std::string data = M_extract_variable_data(raw_data, offset);
-        stub = M_parse_stub(data);
-
-        m_stubs.insert((std::string&&)name, (MDL_Variable_Stub&&)stub);
-	}
+    M_parse_file(_path, m_stubs);
 }
 
 void MDL_Reader::add_stub(const std::string& _name, const MDL_Variable_Stub& _stub)
@@ -62,6 +39,11 @@ void MDL_Reader::add_stub(const std::string& _name, MDL_Variable_Stub&& _stub)
     L_ASSERT(!m_stubs.find(_name).is_ok());
 
     m_stubs.insert(_name, (MDL_Variable_Stub&&)_stub);
+}
+
+void MDL_Reader::clear_predefines()
+{
+    m_predefines.clear();
 }
 
 void MDL_Reader::clear()
@@ -99,6 +81,40 @@ const MDL_Variable_Stub& MDL_Reader::get_stub(const std::string &_name) const
     return *it;
 }
 
+
+
+void MDL_Reader::M_parse_file(const std::string& _path, Stub_Map& _result_storage)
+{
+    std::string raw_data = M_extract_from_file(_path);
+    unsigned int raw_size = raw_data.size();
+
+    unsigned int offset = 0;
+    while(offset < raw_data.size())
+    {
+        std::string line = M_extract_line(raw_data, offset);
+        offset += line.size() + 1;
+
+        while(M_line_is_empty(line) && offset < raw_size)
+        {
+            line = M_extract_line(raw_data, offset);
+            offset += line.size() + 1;
+        }
+
+        if(offset >= raw_size)
+            break;
+
+        MDL_Variable_Stub stub;
+        std::string name = M_parse_name(line);
+        L_ASSERT(name.size() > 0);
+
+        L_ASSERT(!_result_storage.find(name).is_ok());
+
+        std::string data = M_extract_variable_data(raw_data, offset);
+        stub = M_parse_stub(data);
+
+        _result_storage.insert((std::string&&)name, (MDL_Variable_Stub&&)stub);
+    }
+}
 
 
 void MDL_Reader::M_save_stub_to_file(std::ofstream &_file, const std::string& _name, const MDL_Variable_Stub &_stub, unsigned int _nesting_level) const
@@ -176,6 +192,15 @@ void MDL_Reader::M_crop_file_name(std::string& _name) const
 }
 
 
+// LDS::Vector<std::string> MDL_Reader::M_parse_predefine_path(const std::string& _path) const
+// {
+//     LDS::Vector<std::string> result;
+
+//     unsigned int offset = 0;
+//     unsigned int limit = 0;
+// }
+
+
 std::string MDL_Reader::M_extract_from_file(const std::string &_path) const
 {
 	std::ifstream file(_path + ".mdl", std::ifstream::binary);
@@ -195,6 +220,7 @@ std::string MDL_Reader::M_extract_from_file(const std::string &_path) const
     M_preprocess_commentaries(result);
     M_preprocess_includes(_path, result);
     M_preprocess_value_includes(_path, result);
+    M_preprocess_predefines_includes(_path, result);
 
 	return result;
 }
@@ -241,67 +267,78 @@ void MDL_Reader::M_preprocess_commentaries(std::string &_raw) const
 
 void MDL_Reader::M_preprocess_includes(const std::string& _root_path, std::string& _raw) const
 {
-    constexpr unsigned int include_mark_size = 3;
-    const std::string include_openner("<<<");
-    const std::string include_closer(">>>");
+    static const std::string include_openner("<<<");
+    static const std::string include_closer(">>>");
 
-    bool is_in_quotes = false;
-
-    for(unsigned int i = 0; i < _raw.size() - include_mark_size; ++i)
+    const LST::Function<std::string(const std::string&, const std::string&)> extract_replacement_func = [this](const std::string& _root_path, const std::string& _raw_parsed)
     {
-        if(_raw[i] == '"')
-        {
-            is_in_quotes = !is_in_quotes;
-            continue;
-        }
+        std::string file_name = _raw_parsed;
+        M_crop_file_name(file_name);
+        std::string path = _root_path + file_name;
 
-        if(is_in_quotes)
-            continue;
+        return M_extract_from_file(path);
+    };
 
-        if(!M_compare_substrings(_raw, include_openner, i, 0, include_mark_size))
-            continue;
-
-        unsigned int closing_hash_index = i + 1;
-        for(; closing_hash_index < _raw.size() - include_mark_size; ++closing_hash_index)
-        {
-            if(_raw[closing_hash_index] == '"')
-            {
-                is_in_quotes = !is_in_quotes;
-                continue;
-            }
-
-            if(is_in_quotes)
-                continue;
-
-            if(M_compare_substrings(_raw, include_closer, closing_hash_index, 0, include_mark_size))
-                break;
-        }
-
-        L_ASSERT(closing_hash_index < _raw.size());  //  commentary is not openned
-
-        unsigned int replace_begin = i;
-        unsigned int replace_end = closing_hash_index + include_mark_size;
-
-        std::string path = _root_path.substr(0, M_find_symbol_from_end(_root_path, (int)_root_path.size(), '/') + 1);
-        path += _raw.substr(i + include_mark_size, closing_hash_index - i - include_mark_size);
-
-        std::string raw_nested = M_extract_from_file(path);
-
-        _raw = _raw.substr(0, replace_begin) + raw_nested + _raw.substr(replace_end);
-
-        i += raw_nested.size();
-    }
+    M_preprocess_replacement(_root_path, _raw, include_openner, include_closer, extract_replacement_func);
 }
 
 void MDL_Reader::M_preprocess_value_includes(const std::string& _root_path, std::string& _raw) const
 {
-    constexpr unsigned int include_mark_size = 3;
-    const std::string include_openner("<\"<");
-    const std::string include_closer(">\">");
+    static const std::string include_openner("<\"<");
+    static const std::string include_closer(">\">");
 
+    const LST::Function<std::string(const std::string&, const std::string&)> extract_replacement_func = [this](const std::string& _root_path, const std::string& _raw_parsed)
+    {
+        std::string file_name = _raw_parsed;
+        M_crop_file_name(file_name);
+        std::string path = _root_path + file_name;
+
+        LST::File file(path);
+        return '"' + file.extract_block() + '"';
+    };
+
+    M_preprocess_replacement(_root_path, _raw, include_openner, include_closer, extract_replacement_func);
+}
+
+void MDL_Reader::M_preprocess_predefines_includes(const std::string& _root_path, std::string& _raw) const
+{
+    static const std::string include_openner("<%<");
+    static const std::string include_closer(">%>");
+
+    const LST::Function<std::string(const std::string&, const std::string&)> extract_replacement_func = [this](const std::string& _root_path, const std::string& _raw_parsed)
+    {
+        LDS::Vector<std::string> path = M_parse_simple_data(_raw_parsed);
+        L_ASSERT_WITH_INFO(path.size() >= 2, "Incorrect predefines: \"" + _raw_parsed + "\"");
+
+        Stub_Map::Const_Iterator it = m_predefines.find(path[0]);
+        L_ASSERT_WITH_INFO(it.is_ok(), "Could not find predefine group \"" + path[0] + "\"");
+        for(unsigned int i = 1; i < path.size() - 1; ++i)
+        {
+            it = it->childs.find(path[i]);
+            L_ASSERT_WITH_INFO(it.is_ok(), "Could not find predefine group \"" + path[i] + "\"");
+        }
+
+        MDL_Variable_Stub::Fields_Map::Const_Iterator fields_it = it->fields.find(path[path.size() - 1]);
+        const MDL_Variable_Stub::Field_Data_Vector& fields = *fields_it;
+        L_ASSERT(fields.size() > 0);
+
+        std::string result;
+        for(unsigned int i = 0; i < fields.size(); ++i)
+            result += '"' + fields[i] + '"';
+
+        return result;
+    };
+
+    M_preprocess_replacement(_root_path, _raw, include_openner, include_closer, extract_replacement_func);
+}
+
+void MDL_Reader::M_preprocess_replacement(const std::string& _root_path, std::string& _raw,
+                                          const std::string& _opener, const std::string& _closer,
+                                          const LST::Function<std::string(const std::string&, const std::string&)>& _extract_replacement) const
+{
     bool is_in_quotes = false;
 
-    for(unsigned int i = 0; i < _raw.size() - include_mark_size; ++i)
+    for(unsigned int i = 0; i < _raw.size() - _closer.size(); ++i)
     {
         if(_raw[i] == '"')
         {
@@ -312,11 +349,11 @@ void MDL_Reader::M_preprocess_value_includes(const std::string& _root_path, std:
         if(is_in_quotes)
             continue;
 
-        if(!M_compare_substrings(_raw, include_openner, i, 0, include_mark_size))
+        if(!M_compare_substrings(_raw, _opener, i, 0, _opener.size()))
             continue;
 
-        unsigned int closing_hash_index = i + include_mark_size;
-        for(; closing_hash_index < _raw.size() - include_mark_size; ++closing_hash_index)
+        unsigned int closing_hash_index = i + _opener.size();
+        for(; closing_hash_index < _raw.size() - _closer.size(); ++closing_hash_index)
         {
             if(_raw[closing_hash_index] == '"')
             {
@@ -327,27 +364,23 @@ void MDL_Reader::M_preprocess_value_includes(const std::string& _root_path, std:
             if(is_in_quotes)
                 continue;
 
-            if(M_compare_substrings(_raw, include_closer, closing_hash_index, 0, include_mark_size))
+            if(M_compare_substrings(_raw, _closer, closing_hash_index, 0, _closer.size()))
                 break;
         }
 
         L_ASSERT(closing_hash_index < _raw.size());  //  commentary is not openned
 
         unsigned int replace_begin = i;
-        unsigned int replace_end = closing_hash_index + include_mark_size;
+        unsigned int replace_end = closing_hash_index + _closer.size();
 
         std::string path = _root_path.substr(0, M_find_symbol_from_end(_root_path, (int)_root_path.size(), '/') + 1);
-        std::string file_name = _raw.substr(i + include_mark_size, closing_hash_index - i - include_mark_size);
-        M_crop_file_name(file_name);
-        path += file_name;
+        std::string extracted = _raw.substr(i + _opener.size(), closing_hash_index - i - _closer.size());
 
-        LST::File file(path);
-        L_ASSERT_WITH_INFO(file.exists(), "File \"" + path + "\" does not exist");
-        std::string raw_nested = file.extract_block();
+        std::string raw_nested = _extract_replacement(path, extracted);
 
-        _raw = _raw.substr(0, replace_begin) + '"' + raw_nested + '"' + _raw.substr(replace_end);
+        _raw = _raw.substr(0, replace_begin) + raw_nested + _raw.substr(replace_end);
 
-        i += raw_nested.size() + 1;
+        i += raw_nested.size();
     }
 }
 
