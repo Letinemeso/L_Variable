@@ -53,9 +53,9 @@
                 field_data.type_name = #field_type; \
                 void* field_ptr = &field_reference; \
                 field_data.field_ptr = field_ptr; \
-                field_data.init_func = [field_ptr](const LV::MDL_Variable_Stub& _stub) \
+                field_data.init_func = [field_ptr](const LV::MDL_Variable& _stub) \
                 { \
-                    LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(#field_reference); \
+                    LV::MDL_Variable::Fields_Map::Const_Iterator check = _stub.fields.find(#field_reference); \
                     if(check.is_ok()) \
                         LV::Type_Manager::parse(#field_type, *check, field_ptr); \
                 }; \
@@ -77,9 +77,9 @@
                     field_data.type_name = #field_type; \
                     void* field_ptr = &field_reference; \
                     field_data.field_ptr = field_ptr; \
-                    field_data.init_func = [field_ptr](const LV::MDL_Variable_Stub& _stub) \
+                    field_data.init_func = [field_ptr](const LV::MDL_Variable& _stub) \
                     { \
-                        LV::MDL_Variable_Stub::Fields_Map::Const_Iterator check = _stub.fields.find(field_name); \
+                        LV::MDL_Variable::Fields_Map::Const_Iterator check = _stub.fields.find(field_name); \
                         if(check.is_ok()) \
                             LV::Type_Manager::parse(#field_type, *check, field_ptr); \
                     }; \
@@ -145,7 +145,7 @@ namespace LV
 
     public:
         using Childs_Container_Type = LDS::Map<std::string, Variable_Base**>;
-        using Init_Field_Func = LST::Function<void(const MDL_Variable_Stub&)>;
+        using Init_Field_Func = LST::Function<void(const MDL_Variable&)>;
         using Serialize_Field_Func = LST::Function<LDS::Vector<std::string>()>;
         using Copy_Func = LST::Function<void(void*)>;
 
@@ -204,13 +204,13 @@ namespace LV
         void M_register_child(Childs_Container_Type& _container, const std::string& _child_name, Variable_Base** _child_ptr);
 
     protected:
-        void M_assign_values(const MDL_Variable_Stub& _stub);
-        void M_init_childs(const MDL_Variable_Stub& _stub);
+        void M_assign_values(const MDL_Variable& _stub);
+        void M_init_childs(const MDL_Variable& _stub);
         virtual void M_on_values_assigned() { }
 
-        void M_pack_fields(MDL_Variable_Stub& _stub);
-        void M_pack_childs(MDL_Variable_Stub& _stub);
-        void M_pack_childs_lists(MDL_Variable_Stub& _stub);
+        void M_pack_fields(MDL_Variable& _stub);
+        void M_pack_childs(MDL_Variable& _stub);
+        void M_pack_childs_lists(MDL_Variable& _stub);
 
         void M_copy_fieds(LV::Variable_Base* _to);
         void M_copy_childs(LV::Variable_Base* _to);
@@ -221,8 +221,8 @@ namespace LV
         void clear_childs_list(Childs_List& _list);
 
     public:
-        void assign_values(const MDL_Variable_Stub& _stub);
-        MDL_Variable_Stub pack();
+        void assign_values(const MDL_Variable& _stub);
+        MDL_Variable pack();
         Variable_Base* construct_copy();
 
 	};

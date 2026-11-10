@@ -52,7 +52,7 @@ void Variable_Base::M_register_child(Childs_Container_Type& _container, const st
 
 
 
-void Variable_Base::M_assign_values(const MDL_Variable_Stub& _stub)
+void Variable_Base::M_assign_values(const MDL_Variable& _stub)
 {
     Fields_Data_List fields = get_fields();
     for(Fields_Data_List::Iterator it = fields.begin(); !it.end_reached(); ++it)
@@ -62,7 +62,7 @@ void Variable_Base::M_assign_values(const MDL_Variable_Stub& _stub)
     }
 }
 
-void Variable_Base::M_init_childs(const MDL_Variable_Stub& _stub)
+void Variable_Base::M_init_childs(const MDL_Variable& _stub)
 {
     Childs_Container_Type childs = get_childs();
 
@@ -73,7 +73,7 @@ void Variable_Base::M_init_childs(const MDL_Variable_Stub& _stub)
 
         const std::string& name = it.key();
 
-        MDL_Variable_Stub::Childs_Map::Const_Iterator maybe_child_stub = _stub.childs.find(name);
+        MDL_Variable::Childs_Map::Const_Iterator maybe_child_stub = _stub.childs.find(name);
         L_ASSERT(maybe_child_stub.is_ok());
 
         (**it)->assign_values(*maybe_child_stub);
@@ -81,7 +81,7 @@ void Variable_Base::M_init_childs(const MDL_Variable_Stub& _stub)
 }
 
 
-void Variable_Base::M_pack_fields(MDL_Variable_Stub& _stub)
+void Variable_Base::M_pack_fields(MDL_Variable& _stub)
 {
     Fields_Data_List fields = get_fields();
     for(Fields_Data_List::Iterator it = fields.begin(); !it.end_reached(); ++it)
@@ -91,7 +91,7 @@ void Variable_Base::M_pack_fields(MDL_Variable_Stub& _stub)
     }
 }
 
-void Variable_Base::M_pack_childs(MDL_Variable_Stub& _stub)
+void Variable_Base::M_pack_childs(MDL_Variable& _stub)
 {
     Childs_Container_Type childs = get_childs();
     for(Childs_Container_Type::Iterator it = childs.iterator(); !it.end_reached(); ++it)
@@ -101,7 +101,7 @@ void Variable_Base::M_pack_childs(MDL_Variable_Stub& _stub)
     }
 }
 
-void Variable_Base::M_pack_childs_lists(MDL_Variable_Stub& _stub)
+void Variable_Base::M_pack_childs_lists(MDL_Variable& _stub)
 {
     Childs_Lists childs_lists = get_childs_lists();
     for(Childs_Lists::Iterator lists_it = childs_lists.begin(); !lists_it.end_reached(); ++lists_it)
@@ -211,16 +211,16 @@ void Variable_Base::clear_childs_list(Childs_List& _list)
 
 
 
-void Variable_Base::assign_values(const MDL_Variable_Stub& _stub)
+void Variable_Base::assign_values(const MDL_Variable& _stub)
 {
     M_assign_values(_stub);
     M_init_childs(_stub);
     M_on_values_assigned();
 }
 
-MDL_Variable_Stub Variable_Base::pack()
+MDL_Variable Variable_Base::pack()
 {
-    MDL_Variable_Stub result;
+    MDL_Variable result;
 
     M_pack_fields(result);
     M_pack_childs(result);

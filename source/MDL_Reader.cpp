@@ -27,18 +27,18 @@ void MDL_Reader::parse_file(const std::string &_path)
     M_parse_file(_path, m_stubs);
 }
 
-void MDL_Reader::add_stub(const std::string& _name, const MDL_Variable_Stub& _stub)
+void MDL_Reader::add_stub(const std::string& _name, const MDL_Variable& _stub)
 {
     L_ASSERT(!m_stubs.find(_name).is_ok());
 
     m_stubs.insert(_name, _stub);
 }
 
-void MDL_Reader::add_stub(const std::string& _name, MDL_Variable_Stub&& _stub)
+void MDL_Reader::add_stub(const std::string& _name, MDL_Variable&& _stub)
 {
     L_ASSERT(!m_stubs.find(_name).is_ok());
 
-    m_stubs.insert(_name, (MDL_Variable_Stub&&)_stub);
+    m_stubs.insert(_name, (MDL_Variable&&)_stub);
 }
 
 void MDL_Reader::clear_predefines()
@@ -74,7 +74,7 @@ const MDL_Reader::Stub_Map& MDL_Reader::stubs() const
 	return m_stubs;
 }
 
-const MDL_Variable_Stub& MDL_Reader::get_stub(const std::string &_name) const
+const MDL_Variable& MDL_Reader::get_stub(const std::string &_name) const
 {
     Stub_Map::Const_Iterator it = m_stubs.find(_name);
     L_ASSERT_WITH_INFO(it.is_ok(), "Object with name \"" + _name + "\" not found");
@@ -103,7 +103,7 @@ void MDL_Reader::M_parse_file(const std::string& _path, Stub_Map& _result_storag
         if(offset >= raw_size)
             break;
 
-        MDL_Variable_Stub stub;
+        MDL_Variable stub;
         std::string name = M_parse_name(line);
         L_ASSERT(name.size() > 0);
 
@@ -112,12 +112,12 @@ void MDL_Reader::M_parse_file(const std::string& _path, Stub_Map& _result_storag
         std::string data = M_extract_variable_data(raw_data, offset);
         stub = M_parse_stub(data);
 
-        _result_storage.insert((std::string&&)name, (MDL_Variable_Stub&&)stub);
+        _result_storage.insert((std::string&&)name, (MDL_Variable&&)stub);
     }
 }
 
 
-void MDL_Reader::M_save_stub_to_file(std::ofstream &_file, const std::string& _name, const MDL_Variable_Stub &_stub, unsigned int _nesting_level) const
+void MDL_Reader::M_save_stub_to_file(std::ofstream &_file, const std::string& _name, const MDL_Variable &_stub, unsigned int _nesting_level) const
 {
     auto output_tabs = [&](unsigned int _amount)
     {
@@ -159,7 +159,7 @@ void MDL_Reader::M_save_stub_to_file(std::ofstream &_file, const std::string& _n
     }
 
 
-    for(LDS::Map<std::string, MDL_Variable_Stub>::Const_Iterator child_it = _stub.childs.iterator(); !child_it.end_reached(); ++child_it)
+    for(LDS::Map<std::string, MDL_Variable>::Const_Iterator child_it = _stub.childs.iterator(); !child_it.end_reached(); ++child_it)
         M_save_stub_to_file(_file, child_it.key(), *child_it, _nesting_level + 1);
 
     output_tabs(_nesting_level);
@@ -318,8 +318,8 @@ void MDL_Reader::M_preprocess_predefines_includes(const std::string& _root_path,
             L_ASSERT_WITH_INFO(it.is_ok(), "Could not find predefine group \"" + path[i] + "\"");
         }
 
-        MDL_Variable_Stub::Fields_Map::Const_Iterator fields_it = it->fields.find(path[path.size() - 1]);
-        const MDL_Variable_Stub::Field_Data_Vector& fields = *fields_it;
+        MDL_Variable::Fields_Map::Const_Iterator fields_it = it->fields.find(path[path.size() - 1]);
+        const MDL_Variable::Field_Data_Vector& fields = *fields_it;
         L_ASSERT(fields.size() > 0);
 
         std::string result;
@@ -568,11 +568,11 @@ bool MDL_Reader::M_compare_substrings(const std::string& _first, const std::stri
     return true;
 }
 
-MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw_data) const
+MDL_Variable MDL_Reader::M_parse_stub(const std::string &_raw_data) const
 {
 	unsigned int offset = 0;
 
-    MDL_Variable_Stub result;
+    MDL_Variable result;
 
 	while(offset < _raw_data.size())
 	{
@@ -592,17 +592,17 @@ MDL_Variable_Stub MDL_Reader::M_parse_stub(const std::string &_raw_data) const
             L_ASSERT(!result.childs.find(name).is_ok());
 
             std::string raw_child_data = M_extract_variable_data(_raw_data, offset);
-            MDL_Variable_Stub child = M_parse_stub(raw_child_data);
+            MDL_Variable child = M_parse_stub(raw_child_data);
 
             result.child_names_order.push_back(name);
-            result.childs.insert((std::string&&)name, (MDL_Variable_Stub&&)child);
+            result.childs.insert((std::string&&)name, (MDL_Variable&&)child);
         }
         else
         {
             std::string simple_data_raw_str = M_extract_variable_data(_raw_data, offset);
             LDS::Vector<std::string> values = M_parse_simple_data(simple_data_raw_str);
 
-            MDL_Variable_Stub::Fields_Map::Iterator maybe_field_it = result.fields.find(name);
+            MDL_Variable::Fields_Map::Iterator maybe_field_it = result.fields.find(name);
 
             if(maybe_field_it.is_ok())
                 *maybe_field_it = (LDS::Vector<std::string>&&)values;

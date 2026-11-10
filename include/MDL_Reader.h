@@ -13,28 +13,28 @@
 namespace LV
 {
 
-	struct MDL_Variable_Stub
+    struct MDL_Variable
     {
         using Field_Data_Vector = LDS::Vector<std::string>;
         using Fields_Map = LDS::Map<std::string, Field_Data_Vector>;
-        using Childs_Map = LDS::Map<std::string, MDL_Variable_Stub>;
+        using Childs_Map = LDS::Map<std::string, MDL_Variable>;
         using Child_Names_Order_List = LDS::List<std::string>;
 
         Fields_Map fields;
         Childs_Map childs;
         Child_Names_Order_List child_names_order;
 
-		MDL_Variable_Stub(){}
-        MDL_Variable_Stub(const MDL_Variable_Stub& _other) : fields(_other.fields), childs(_other.childs), child_names_order(_other.child_names_order) {}
-        MDL_Variable_Stub(MDL_Variable_Stub&& _other) : fields((Fields_Map&&)_other.fields), childs((Childs_Map&&)_other.childs), child_names_order(_other.child_names_order) {}
-        void operator =(MDL_Variable_Stub&& _other) { fields = (Fields_Map&&)_other.fields; childs = (Childs_Map&&)_other.childs; child_names_order = (Child_Names_Order_List&&)_other.child_names_order; }
+        MDL_Variable(){}
+        MDL_Variable(const MDL_Variable& _other) : fields(_other.fields), childs(_other.childs), child_names_order(_other.child_names_order) {}
+        MDL_Variable(MDL_Variable&& _other) : fields((Fields_Map&&)_other.fields), childs((Childs_Map&&)_other.childs), child_names_order(_other.child_names_order) {}
+        void operator =(MDL_Variable&& _other) { fields = (Fields_Map&&)_other.fields; childs = (Childs_Map&&)_other.childs; child_names_order = (Child_Names_Order_List&&)_other.child_names_order; }
 	};
 
 
 	class MDL_Reader final
 	{
 	public:
-        using Stub_Map = LDS::Map<std::string, MDL_Variable_Stub>;
+        using Stub_Map = LDS::Map<std::string, MDL_Variable>;
 
 	private:
         Stub_Map m_predefines;
@@ -50,20 +50,20 @@ namespace LV
 	public:
         void parse_predefines_file(const std::string& _path);
 		void parse_file(const std::string& _path);
-        void add_stub(const std::string& _name, const MDL_Variable_Stub& _stub);
-        void add_stub(const std::string& _name, MDL_Variable_Stub&& _stub);
+        void add_stub(const std::string& _name, const MDL_Variable& _stub);
+        void add_stub(const std::string& _name, MDL_Variable&& _stub);
         void clear_predefines();
 		void clear();
 		void save_to_file(const std::string& _path) const;
 
 	public:
 		const Stub_Map& stubs() const;
-		const MDL_Variable_Stub& get_stub(const std::string& _name) const;
+        const MDL_Variable& get_stub(const std::string& _name) const;
 
     private:
         void M_parse_file(const std::string& _path, Stub_Map& _result_storage);
 
-        void M_save_stub_to_file(std::ofstream& _file, const std::string& _name, const MDL_Variable_Stub& _stub, unsigned int _nesting_level = 0) const;
+        void M_save_stub_to_file(std::ofstream& _file, const std::string& _name, const MDL_Variable& _stub, unsigned int _nesting_level = 0) const;
 
         void M_crop_file_name(std::string& _name) const;
 
@@ -91,7 +91,7 @@ namespace LV
 
         std::string M_parse_name(const std::string& _line) const;
         bool M_compare_substrings(const std::string& _first, const std::string& _second, unsigned int _offset_1, unsigned int _offset_2, unsigned int _compare_size) const;
-        MDL_Variable_Stub M_parse_stub(const std::string& _raw_data) const;
+        MDL_Variable M_parse_stub(const std::string& _raw_data) const;
 		unsigned int M_parse_amount(const std::string& _raw_data) const;
 		LDS::Vector<std::string> M_parse_simple_data(const std::string& _raw_data) const;
 
