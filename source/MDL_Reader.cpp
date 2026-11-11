@@ -202,7 +202,7 @@ void MDL_Reader::M_crop_file_name(std::string& _name) const
 std::string MDL_Reader::M_extract_from_file(const std::string &_path) const
 {
     LST::File file(_path + ".mdl");
-    L_ASSERT_WITH_INFO(file.exists(), "Unable to open \"" + file.get_path() + ".mdl\"");
+    L_ASSERT_WITH_INFO(file.exists(), "Unable to open \"" + file.get_path());
     std::string source = file.extract_block();
 
     M_preprocess_commentaries(source);
