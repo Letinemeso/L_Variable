@@ -119,8 +119,6 @@ void MDL_Reader::M_parse_source(const std::string& _source, Variable_Map& _resul
         std::string data = M_extract_variable_data(_source, offset);
         stub = M_parse_stub(data);
 
-        M_apply_template_if_specified(stub);
-
         _result_storage.insert( LST::move(name), LST::move(stub) );
     }
 }
@@ -623,6 +621,8 @@ MDL_Variable MDL_Reader::M_parse_stub(const std::string &_raw_data) const
                 result.fields().insert(name, (LDS::Vector<std::string>&&)values);
         }
 	}
+
+    M_apply_template_if_specified(result);
 
 	return result;
 }

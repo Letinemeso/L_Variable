@@ -221,7 +221,105 @@ INIT_TEST(MDL_Parse_Test__Merge)
     if(child_additional_data_vec.size() != 1)
         return;
     EXPECT_EQUAL(child_additional_data_vec[0], "1112");
-
-
-
 }
+
+INIT_TEST(MDL_Parse_Test__Merge_Child)
+{
+    std::string mdl_source_template =
+        R"(
+
+|child_template|
+\
+    |child_field|
+    \
+        "child_field_text"
+    /
+
+    |child_replace_data|
+    \
+        "33"
+    /
+/
+
+)";
+
+    std::string mdl_source =
+        R"(
+
+|model|
+\
+    ||child||
+    \
+        |template|
+        \
+            "child_template"
+        /
+        |child_replace_data|
+        \
+            "11" "12"
+        /
+        |child_additional_data|
+        \
+            "1112"
+        /
+    /
+/
+
+)";
+
+    LV::MDL_Reader reader;
+    reader.parse_predefines_source(mdl_source_template);
+    reader.parse_source(mdl_source);
+
+    const LV::MDL_Reader::Variable_Map& variables = reader.variables();
+    EXPECT_EQUAL(variables.size(), 1);
+
+    const LV::MDL_Reader::Variable_Map::Const_Iterator vars_it = variables.find("model");
+    EXPECT_EQUAL(vars_it.is_ok(), true);
+    if(!vars_it.is_ok())
+        return;
+
+    const LV::MDL_Variable& variable = *vars_it;
+
+
+    LV::MDL_Variable::Childs_Map::Const_Iterator child_it = variable.childs().find("child");
+    EXPECT_EQUAL(child_it.is_ok(), true);
+    if(!child_it.is_ok())
+        return;
+    const LV::MDL_Variable& child_variable = *child_it;
+
+    LV::MDL_Variable::Fields_Map::Const_Iterator fields_it = child_variable.fields().find("child_field");
+    EXPECT_EQUAL(fields_it.is_ok(), true);
+    if(!fields_it.is_ok())
+        return;
+
+    const LV::MDL_Variable::Field_Data_Vector& child_field_vec = *fields_it;
+    EXPECT_EQUAL(child_field_vec.size(), 1);
+    if(child_field_vec.size() != 1)
+        return;
+    EXPECT_EQUAL(child_field_vec[0], "child_field_text");
+
+    fields_it = child_variable.fields().find("child_replace_data");
+    EXPECT_EQUAL(fields_it.is_ok(), true);
+    if(!fields_it.is_ok())
+        return;
+
+    const LV::MDL_Variable::Field_Data_Vector& child_replace_data_vec = *fields_it;
+    EXPECT_EQUAL(child_replace_data_vec.size(), 2);
+    if(child_replace_data_vec.size() != 2)
+        return;
+    EXPECT_EQUAL(child_replace_data_vec[0], "11");
+    EXPECT_EQUAL(child_replace_data_vec[1], "12");
+
+    fields_it = child_variable.fields().find("child_additional_data");
+    EXPECT_EQUAL(fields_it.is_ok(), true);
+    if(!fields_it.is_ok())
+        return;
+
+    const LV::MDL_Variable::Field_Data_Vector& child_additional_data_vec = *fields_it;
+    EXPECT_EQUAL(child_additional_data_vec.size(), 1);
+    if(child_additional_data_vec.size() != 1)
+        return;
+    EXPECT_EQUAL(child_additional_data_vec[0], "1112");
+}
+
