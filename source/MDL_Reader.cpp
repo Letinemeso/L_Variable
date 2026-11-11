@@ -19,26 +19,36 @@ MDL_Reader::~MDL_Reader()
 
 void MDL_Reader::parse_predefines_file(const std::string& _path)
 {
-    M_parse_file(_path, m_predefines);
+    parse_predefines_source( M_extract_from_file(_path) );
 }
 
 void MDL_Reader::parse_file(const std::string &_path)
 {
-    M_parse_file(_path, m_stubs);
+    parse_source( M_extract_from_file(_path) );
+}
+
+void MDL_Reader::parse_predefines_source(const std::string& _source)
+{
+    M_parse_source(_source, m_predefines);
+}
+
+void MDL_Reader::parse_source(const std::string& _source)
+{
+    M_parse_source(_source, m_variables);
 }
 
 void MDL_Reader::add_stub(const std::string& _name, const MDL_Variable& _stub)
 {
-    L_ASSERT(!m_stubs.find(_name).is_ok());
+    L_ASSERT(!m_variables.find(_name).is_ok());
 
-    m_stubs.insert(_name, _stub);
+    m_variables.insert(_name, _stub);
 }
 
 void MDL_Reader::add_stub(const std::string& _name, MDL_Variable&& _stub)
 {
-    L_ASSERT(!m_stubs.find(_name).is_ok());
+    L_ASSERT(!m_variables.find(_name).is_ok());
 
-    m_stubs.insert(_name, (MDL_Variable&&)_stub);
+    m_variables.insert(_name, (MDL_Variable&&)_stub);
 }
 
 void MDL_Reader::clear_predefines()
@@ -48,7 +58,7 @@ void MDL_Reader::clear_predefines()
 
 void MDL_Reader::clear()
 {
-	m_stubs.clear();
+    m_variables.clear();
 }
 
 void MDL_Reader::save_to_file(const std::string &_path) const
@@ -58,7 +68,7 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 
 	file << "# This file was auto generated #\n\n";
 
-    for(Stub_Map::Const_Iterator stub_it = m_stubs.iterator(); !stub_it.end_reached(); ++stub_it)
+    for(Variable_Map::Const_Iterator stub_it = m_variables.iterator(); !stub_it.end_reached(); ++stub_it)
     {
         M_save_stub_to_file(file, stub_it.key(), *stub_it);
         file << "\n";
@@ -69,38 +79,35 @@ void MDL_Reader::save_to_file(const std::string &_path) const
 
 
 
-const MDL_Reader::Stub_Map& MDL_Reader::stubs() const
+const MDL_Reader::Variable_Map& MDL_Reader::variables() const
 {
-	return m_stubs;
+    return m_variables;
 }
 
-const MDL_Variable& MDL_Reader::get_stub(const std::string &_name) const
+const MDL_Variable& MDL_Reader::get_variable(const std::string &_name) const
 {
-    Stub_Map::Const_Iterator it = m_stubs.find(_name);
+    Variable_Map::Const_Iterator it = m_variables.find(_name);
     L_ASSERT_WITH_INFO(it.is_ok(), "Object with name \"" + _name + "\" not found");
     return *it;
 }
 
 
 
-void MDL_Reader::M_parse_file(const std::string& _path, Stub_Map& _result_storage)
+void MDL_Reader::M_parse_source(const std::string& _source, Variable_Map& _result_storage)
 {
-    std::string raw_data = M_extract_from_file(_path);
-    unsigned int raw_size = raw_data.size();
-
     unsigned int offset = 0;
-    while(offset < raw_data.size())
+    while(offset < _source.size())
     {
-        std::string line = M_extract_line(raw_data, offset);
+        std::string line = M_extract_line(_source, offset);
         offset += line.size() + 1;
 
-        while(M_line_is_empty(line) && offset < raw_size)
+        while(M_line_is_empty(line) && offset < _source.size())
         {
-            line = M_extract_line(raw_data, offset);
+            line = M_extract_line(_source, offset);
             offset += line.size() + 1;
         }
 
-        if(offset >= raw_size)
+        if(offset >= _source.size())
             break;
 
         MDL_Variable stub;
@@ -109,10 +116,12 @@ void MDL_Reader::M_parse_file(const std::string& _path, Stub_Map& _result_storag
 
         L_ASSERT(!_result_storage.find(name).is_ok());
 
-        std::string data = M_extract_variable_data(raw_data, offset);
+        std::string data = M_extract_variable_data(_source, offset);
         stub = M_parse_stub(data);
 
-        _result_storage.insert((std::string&&)name, (MDL_Variable&&)stub);
+        M_apply_template_if_specified(stub);
+
+        _result_storage.insert( LST::move(name), LST::move(stub) );
     }
 }
 
@@ -291,7 +300,7 @@ void MDL_Reader::M_preprocess_predefines_includes(const std::string& _root_path,
         LDS::Vector<std::string> path = M_parse_simple_data(_raw_parsed);
         L_ASSERT_WITH_INFO(path.size() >= 2, "Incorrect predefines: \"" + _raw_parsed + "\"");
 
-        Stub_Map::Const_Iterator it = m_predefines.find(path[0]);
+        Variable_Map::Const_Iterator it = m_predefines.find(path[0]);
         L_ASSERT_WITH_INFO(it.is_ok(), "Could not find predefine group \"" + path[0] + "\"");
         for(unsigned int i = 1; i < path.size() - 1; ++i)
         {
@@ -363,6 +372,29 @@ void MDL_Reader::M_preprocess_replacement(const std::string& _root_path, std::st
 
         i += raw_nested.size();
     }
+}
+
+
+void MDL_Reader::M_apply_template_if_specified(MDL_Variable& _variable) const
+{
+    MDL_Variable::Fields_Map::Iterator maybe_template_it = _variable.fields().find("template");
+    if(!maybe_template_it.is_ok())
+        return;
+
+    const MDL_Variable::Field_Data_Vector& template_field = *maybe_template_it;
+    L_ASSERT(template_field.size() == 1);
+    const std::string& template_object_name = template_field[0];
+
+    Variable_Map::Const_Iterator template_object_it = m_predefines.find(template_object_name);
+    L_ASSERT(template_object_it.is_ok());
+
+    const MDL_Variable& template_object = *template_object_it;
+
+    MDL_Variable template_copy = template_object;
+    _variable.fields().erase( maybe_template_it );
+    template_copy.merge_with( LST::move(_variable) );
+
+    _variable = LST::move(template_copy);
 }
 
 

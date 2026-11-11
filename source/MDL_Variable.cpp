@@ -72,7 +72,7 @@ void MDL_Variable::merge_with(MDL_Variable&& _other)
 {
     for(Fields_Map::Iterator it = _other.m_fields.iterator(); !it.end_reached(); ++it)
     {
-        const Field_Data_Vector& other_fields = *it;
+        Field_Data_Vector& other_fields = *it;
 
         Fields_Map::Iterator this_fields_it = m_fields.find_or_insert(it.key());
         *this_fields_it = LST::move(other_fields);
